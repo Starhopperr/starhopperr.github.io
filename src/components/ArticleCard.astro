@@ -1,0 +1,161 @@
+---
+// ArticleCard.astro
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  category: string;
+  tags: string[];
+  slug: string;
+  heroImage?: string;
+  readingTime?: number;
+}
+
+const { title, description, pubDate, category, tags, slug, heroImage, readingTime } = Astro.props;
+
+const formatted = pubDate.toLocaleDateString('en-GB', {
+  day: 'numeric', month: 'short', year: 'numeric',
+});
+---
+
+<article class="article-card">
+  {heroImage && (
+    <div class="article-image">
+      <img src={heroImage} alt="" loading="lazy" aria-hidden="true" />
+    </div>
+  )}
+  <div class="article-body">
+    <div class="article-meta">
+      <span class="article-category mono">{category}</span>
+      {readingTime && (
+        <span class="article-read-time mono">{readingTime} min read</span>
+      )}
+    </div>
+    <h3 class="article-title">
+      <a href={`/blogs/${slug}/`}>{title}</a>
+    </h3>
+    <p class="article-description">{description}</p>
+    <div class="article-footer">
+      <time datetime={pubDate.toISOString()} class="article-date">
+        {formatted}
+      </time>
+      <div class="tag-row">
+        {tags.slice(0, 3).map(t => (
+          <span class="article-tag">{t}</span>
+        ))}
+      </div>
+    </div>
+  </div>
+</article>
+
+<style>
+  .article-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-large);
+    overflow: hidden;
+    transition:
+      border-color var(--motion-normal) var(--motion-easing),
+      transform var(--motion-normal) var(--motion-easing);
+  }
+
+  .article-card:hover {
+    border-color: var(--color-border-strong);
+    transform: translateY(-2px);
+  }
+
+  .article-image {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+  }
+
+  .article-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .article-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-200);
+    padding: var(--space-400);
+    flex: 1;
+  }
+
+  .article-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-200);
+  }
+
+  .article-category {
+    font-size: var(--font-size-label);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .article-read-time {
+    font-size: var(--font-size-label);
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+  }
+
+  .article-title {
+    font-size: var(--font-size-heading-m);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-snug);
+  }
+
+  .article-title a {
+    color: var(--color-text-primary);
+    transition: color var(--motion-fast) var(--motion-easing);
+  }
+
+  .article-title a:hover {
+    color: var(--color-accent);
+  }
+
+  .article-description {
+    font-size: var(--font-size-body);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+    flex: 1;
+  }
+
+  .article-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-150);
+    margin-top: var(--space-100);
+  }
+
+  .article-date {
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-100);
+  }
+
+  .article-tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-subtle);
+  }
+</style>

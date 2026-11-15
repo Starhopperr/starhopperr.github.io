@@ -1,0 +1,1476 @@
+---
+// src/components/CodingProfiles.astro
+import SectionHeading from './SectionHeading.astro';
+
+// ── 1. Fetch GitHub data (fallback provided if offline/rate-limited) ──
+interface ContributionDay {
+  date: string;
+  count: number;
+  level: number;
+}
+
+let githubTotal = 39;
+let githubDays: ContributionDay[] = [];
+
+try {
+  const ghRes = await fetch('https://github-contributions-api.jogruber.de/v4/Starhopperr?y=last');
+  if (ghRes.ok) {
+    const json = await ghRes.json();
+    if (json.total?.lastYear !== undefined) {
+      githubTotal = json.total.lastYear;
+    }
+    if (Array.isArray(json.contributions) && json.contributions.length > 0) {
+      githubDays = json.contributions;
+    }
+  }
+} catch (e) {
+  // Silent fallback
+}
+
+// Generate fallback 52-week array if fetch failed
+if (githubDays.length === 0) {
+  const today = new Date();
+  for (let i = 370; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    githubDays.push({
+      date: d.toISOString().split('T')[0],
+      count: 0,
+      level: 0,
+    });
+  }
+}
+
+// ── 2. Fetch LeetCode data for 'starhoppersenpai' ────────────────────
+let leetcodeStats = {
+  totalSolved: 21,
+  easy: 16,
+  medium: 5,
+  hard: 0,
+  calendar: {} as Record<string, number>,
+};
+
+try {
+  const lcRes = await fetch('https://leetcode.com/graphql', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      'Referer': 'https://leetcode.com',
+    },
+    body: JSON.stringify({
+      query: `query getUserProfile($username: String!) {
+        matchedUser(username: $username) {
+          username
+          submitStats: submitStatsGlobal {
+            acSubmissionNum { difficulty count }
+          }
+          userCalendar {
+            submissionCalendar
+          }
+        }
+      }`,
+      variables: { username: 'starhoppersenpai' },
+    }),
+  });
+
+  if (lcRes.ok) {
+    const json = await lcRes.json();
+    const user = json?.data?.matchedUser;
+    if (user) {
+      const nums = user.submitStats?.acSubmissionNum || [];
+      const all = nums.find((n: any) => n.difficulty === 'All')?.count;
+      const easy = nums.find((n: any) => n.difficulty === 'Easy')?.count;
+      const med = nums.find((n: any) => n.difficulty === 'Medium')?.count;
+      const hard = nums.find((n: any) => n.difficulty === 'Hard')?.count;
+
+      if (all !== undefined) leetcodeStats.totalSolved = all;
+      if (easy !== undefined) leetcodeStats.easy = easy;
+      if (med !== undefined) leetcodeStats.medium = med;
+      if (hard !== undefined) leetcodeStats.hard = hard;
+
+      if (user.userCalendar?.submissionCalendar) {
+        leetcodeStats.calendar = JSON.parse(user.userCalendar.submissionCalendar);
+      }
+    }
+  }
+} catch (e) {
+  // Silent fallback to confirmed stats
+}
+
+// ── 3. Fetch Codeforces data for 'SukumarRoy' ────────────────────────
+interface CFRatingChange {
+  contestId: number;
+  contestName: string;
+  handle: string;
+  rank: number;
+  ratingUpdateTimeSeconds: number;
+  oldRating: number;
+  newRating: number;
+}
+
+let codeforcesStats = {
+  handle: 'SukumarRoy',
+  rank: 'Newbie',
+  rating: 368,
+  maxRating: 368,
+  solved: 3,
+  totalSubmissions: 9,
+  calendar: {} as Record<string, number>,
+};
+
+let codeforcesRatings: CFRatingChange[] = [
+  {
+    contestId: 2232,
+    contestName: 'Codeforces Round 1101 (Div. 2)',
+    handle: 'SukumarRoy',
+    rank: 14318,
+    ratingUpdateTimeSeconds: 1780158900,
+    oldRating: 0,
+    newRating: 368,
+  },
+];
+
+try {
+  const [infoRes, ratingRes, statusRes] = await Promise.all([
+    fetch('https://codeforces.com/api/user.info?handles=SukumarRoy'),
+    fetch('https://codeforces.com/api/user.rating?handle=SukumarRoy'),
+    fetch('https://codeforces.com/api/user.status?handle=SukumarRoy&from=1&count=500'),
+  ]);
+
+  if (infoRes.ok) {
+    const infoJson = await infoRes.json();
+    if (infoJson.status === 'OK' && Array.isArray(infoJson.result) && infoJson.result.length > 0) {
+      const u = infoJson.result[0];
+      if (u.rating !== undefined) codeforcesStats.rating = u.rating;
+      if (u.maxRating !== undefined) codeforcesStats.maxRating = u.maxRating;
+      if (u.rank) {
+        codeforcesStats.rank = u.rank.charAt(0).toUpperCase() + u.rank.slice(1);
+      }
+    }
+  }
+
+  if (ratingRes.ok) {
+    const ratingJson = await ratingRes.json();
+    if (ratingJson.status === 'OK' && Array.isArray(ratingJson.result) && ratingJson.result.length > 0) {
+      codeforcesRatings = ratingJson.result;
+    }
+  }
+
+  if (statusRes.ok) {
+    const statusJson = await statusRes.json();
+    if (statusJson.status === 'OK' && Array.isArray(statusJson.result)) {
+      codeforcesStats.totalSubmissions = statusJson.result.length;
+      const solvedSet = new Set<string>();
+      statusJson.result.forEach((sub: any) => {
+        if (sub.verdict === 'OK' && sub.problem) {
+          solvedSet.add(`${sub.problem.contestId}-${sub.problem.index}`);
+        }
+        if (sub.creationTimeSeconds) {
+          const d = new Date(sub.creationTimeSeconds * 1000);
+          const dateStr = d.toISOString().split('T')[0];
+          codeforcesStats.calendar[dateStr] = (codeforcesStats.calendar[dateStr] || 0) + 1;
+        }
+      });
+      if (solvedSet.size > 0) {
+        codeforcesStats.solved = solvedSet.size;
+      }
+    }
+  }
+} catch (e) {
+  // Silent fallback
+}
+
+// Ensure confirmed dates exist in Codeforces calendar if offline
+if (Object.keys(codeforcesStats.calendar).length === 0) {
+  codeforcesStats.calendar['2025-04-13'] = 8;
+  codeforcesStats.calendar['2026-05-30'] = 1;
+}
+
+// ── Graph Calculations for Codeforces Rating View ───────────────────
+const originX = 60;
+const originY = 20;
+const graphWidth = 715;
+const graphHeight = 260;
+const maxRatingCap = 2100;
+
+function formatContestDate(epochSec: number): string {
+  const d = new Date(epochSec * 1000);
+  const day = d.getUTCDate();
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = months[d.getUTCMonth()];
+  const year = d.getUTCFullYear();
+  return `${day} ${month} ${year}`;
+}
+
+function ratingToY(rating: number): number {
+  const clamped = Math.max(0, Math.min(maxRatingCap, rating));
+  return originY + graphHeight - (clamped / maxRatingCap) * graphHeight;
+}
+
+// Band coordinates (Y and Height)
+const y2100 = ratingToY(2100);
+const y1900 = ratingToY(1900);
+const y1600 = ratingToY(1600);
+const y1400 = ratingToY(1400);
+const y1200 = ratingToY(1200);
+const y0 = ratingToY(0);
+
+const bandCM = { y: y2100, h: y1900 - y2100 };
+const bandExp = { y: y1900, h: y1600 - y1900 };
+const bandSpec = { y: y1600, h: y1400 - y1600 };
+const bandPupil = { y: y1400, h: y1200 - y1400 };
+const bandNewbie = { y: y1200, h: y0 - y1200 };
+
+// Contest Points
+const contestPoints = codeforcesRatings.map((c, idx) => {
+  let x = originX + graphWidth / 2;
+  if (codeforcesRatings.length > 1) {
+    x = originX + 50 + (idx / (codeforcesRatings.length - 1)) * (graphWidth - 100);
+  }
+  const y = ratingToY(c.newRating);
+  const dateStr = formatContestDate(c.ratingUpdateTimeSeconds);
+  const delta = c.newRating - c.oldRating;
+  const deltaStr = delta >= 0 ? `+${delta}` : `${delta}`;
+  return {
+    ...c,
+    x,
+    y,
+    dateStr,
+    deltaStr,
+  };
+});
+
+const linePointsStr = contestPoints.map((p) => `${p.x},${p.y}`).join(' ');
+
+// ── Calendar Grids for GitHub, LeetCode & Codeforces ────────────────
+const ghWeeks: ContributionDay[][] = [];
+for (let i = 0; i < githubDays.length; i += 7) {
+  ghWeeks.push(githubDays.slice(i, i + 7));
+}
+
+const lcDays: { date: string; count: number; level: number }[] = githubDays.map((day) => {
+  const dateObj = new Date(day.date + 'T00:00:00Z');
+  const epochSec = Math.floor(dateObj.getTime() / 1000);
+  const count = leetcodeStats.calendar[epochSec.toString()] || 0;
+  let level = 0;
+  if (count >= 7) level = 4;
+  else if (count >= 4) level = 3;
+  else if (count >= 2) level = 2;
+  else if (count >= 1) level = 1;
+  return { date: day.date, count, level };
+});
+
+const lcWeeks: typeof lcDays[] = [];
+for (let i = 0; i < lcDays.length; i += 7) {
+  lcWeeks.push(lcDays.slice(i, i + 7));
+}
+
+// Codeforces 52-week activity calendar (blue scale)
+const cfDays: { date: string; count: number; level: number }[] = githubDays.map((day) => {
+  const count = codeforcesStats.calendar[day.date] || 0;
+  let level = 0;
+  if (count >= 5) level = 4;
+  else if (count >= 3) level = 3;
+  else if (count >= 2) level = 2;
+  else if (count >= 1) level = 1;
+  return { date: day.date, count, level };
+});
+
+const cfWeeks: typeof cfDays[] = [];
+for (let i = 0; i < cfDays.length; i += 7) {
+  cfWeeks.push(cfDays.slice(i, i + 7));
+}
+---
+
+<section class="section coding-profiles-section" aria-labelledby="coding-profiles-heading">
+  <div class="container">
+    <SectionHeading
+      eyebrow="Activity & Problem Solving"
+      heading="Coding Profiles"
+      description="Live metrics and activity heatmaps across GitHub, LeetCode, and Codeforces, tracking continuous engineering, competitive programming, and algorithmic practice."
+      id="coding-profiles-heading"
+    />
+
+    <div class="profiles-grid">
+      <!-- ── GitHub Profile Card ────────────────────────────── -->
+      <div class="profile-card github-card">
+        <div class="profile-card-header">
+          <div class="profile-meta">
+            <div class="platform-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="platform-name">GitHub</h3>
+              <a
+                href="https://github.com/Starhopperr"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="platform-handle mono"
+              >
+                @Starhopperr ↗
+              </a>
+            </div>
+          </div>
+
+          <div class="profile-stats-summary">
+            <span class="stat-pill">
+              <strong class="stat-num">{githubTotal}</strong> contributions in the last year
+            </span>
+          </div>
+        </div>
+
+        <!-- Heatmap Grid -->
+        <div class="heatmap-wrapper" tabindex="0" role="region" aria-label="GitHub Contributions Heatmap">
+          <div class="heatmap-grid-scroll">
+            <div class="heatmap-container">
+              <div class="heatmap-days-legend mono" aria-hidden="true">
+                <span>Mon</span>
+                <span>Wed</span>
+                <span>Fri</span>
+              </div>
+              <div class="heatmap-columns">
+                {ghWeeks.map((week) => (
+                  <div class="heatmap-col">
+                    {week.map((day) => (
+                      <span
+                        class={`heatmap-cell gh-level-${day.level}`}
+                        title={`${day.count} contributions on ${day.date}`}
+                        data-count={day.count}
+                        data-date={day.date}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="heatmap-footer">
+          <span class="footer-meta mono">Activity in the last 12 months</span>
+          <div class="heatmap-legend" aria-hidden="true">
+            <span class="mono">Less</span>
+            <span class="heatmap-cell gh-level-0"></span>
+            <span class="heatmap-cell gh-level-1"></span>
+            <span class="heatmap-cell gh-level-2"></span>
+            <span class="heatmap-cell gh-level-3"></span>
+            <span class="heatmap-cell gh-level-4"></span>
+            <span class="mono">More</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LeetCode Profile Card ──────────────────────────── -->
+      <div class="profile-card leetcode-card">
+        <div class="profile-card-header">
+          <div class="profile-meta">
+            <div class="platform-icon leetcode-icon-wrapper" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16.102 17.93l-2.697 2.607c-.466.467-1.111.662-1.823.662s-1.357-.195-1.824-.662l-4.332-4.363c-.467-.467-.702-1.15-.702-1.863s.235-1.357.702-1.824l4.319-4.38c.467-.467 1.125-.645 1.837-.645s1.357.195 1.823.662l2.697 2.606c.514.515 1.365.497 1.9-.038.535-.536.553-1.387.039-1.901l-2.609-2.636a5.212 5.212 0 0 0-3.85-1.474 5.228 5.228 0 0 0-3.864 1.474l-4.32 4.38a5.228 5.228 0 0 0-1.474 3.864c0 1.488.544 2.88 1.474 3.864l4.332 4.363a5.228 5.228 0 0 0 3.864 1.474 5.228 5.228 0 0 0 3.85-1.474l2.609-2.636c.514-.514.496-1.365-.039-1.9-.535-.536-1.386-.554-1.9-.038zM10.74 12.39h7.498a1.365 1.365 0 0 0 1.365-1.365 1.365 1.365 0 0 0-1.365-1.365H10.74a1.365 1.365 0 0 0-1.365 1.365c0 .754.611 1.365 1.365 1.365z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="platform-name">LeetCode</h3>
+              <a
+                href="https://leetcode.com/u/starhoppersenpai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="platform-handle mono"
+              >
+                @starhoppersenpai ↗
+              </a>
+            </div>
+          </div>
+
+          <!-- Problem breakdown badges -->
+          <div class="leetcode-breakdown">
+            <div class="breakdown-stat">
+              <span class="stat-number lc-solved">{leetcodeStats.totalSolved}</span>
+              <span class="stat-label mono">Solved</span>
+            </div>
+            <div class="breakdown-stat">
+              <span class="stat-number lc-easy">{leetcodeStats.easy}</span>
+              <span class="stat-label mono">Easy</span>
+            </div>
+            <div class="breakdown-stat">
+              <span class="stat-number lc-med">{leetcodeStats.medium}</span>
+              <span class="stat-label mono">Med</span>
+            </div>
+            <div class="breakdown-stat">
+              <span class="stat-number lc-hard">{leetcodeStats.hard}</span>
+              <span class="stat-label mono">Hard</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heatmap Grid -->
+        <div class="heatmap-wrapper" tabindex="0" role="region" aria-label="LeetCode Submissions Heatmap">
+          <div class="heatmap-grid-scroll">
+            <div class="heatmap-container">
+              <div class="heatmap-days-legend mono" aria-hidden="true">
+                <span>Mon</span>
+                <span>Wed</span>
+                <span>Fri</span>
+              </div>
+              <div class="heatmap-columns">
+                {lcWeeks.map((week) => (
+                  <div class="heatmap-col">
+                    {week.map((day) => (
+                      <span
+                        class={`heatmap-cell lc-level-${day.level}`}
+                        title={`${day.count} submissions on ${day.date}`}
+                        data-count={day.count}
+                        data-date={day.date}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="heatmap-footer">
+          <span class="footer-meta mono">Submission Calendar</span>
+          <div class="heatmap-legend" aria-hidden="true">
+            <span class="mono">0</span>
+            <span class="heatmap-cell lc-level-0"></span>
+            <span class="heatmap-cell lc-level-1"></span>
+            <span class="heatmap-cell lc-level-2"></span>
+            <span class="heatmap-cell lc-level-3"></span>
+            <span class="heatmap-cell lc-level-4"></span>
+            <span class="mono">7+</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Codeforces Profile Card ────────────────────────── -->
+      <div class="profile-card codeforces-card" id="codeforces-card">
+        <div class="profile-card-header">
+          <div class="profile-meta">
+            <div class="platform-icon codeforces-icon-wrapper" aria-hidden="true">
+              <!-- Codeforces 3-bar logo -->
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="9" width="4.5" height="13" rx="1.5" fill="#FFC107" />
+                <rect x="9.75" y="3" width="4.5" height="19" rx="1.5" fill="#2196F3" />
+                <rect x="17.5" y="13" width="4.5" height="9" rx="1.5" fill="#F44336" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="platform-name">Codeforces</h3>
+              <a
+                href="https://codeforces.com/profile/SukumarRoy"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="platform-handle mono"
+              >
+                @SukumarRoy ↗
+              </a>
+            </div>
+          </div>
+
+          <!-- Problem & contest breakdown badges -->
+          <div class="codeforces-breakdown">
+            <div class="breakdown-stat">
+              <span class="stat-number cf-rating" id="cf-rating-val">{codeforcesStats.rating}</span>
+              <span class="stat-label mono">Rating</span>
+            </div>
+            <div class="breakdown-stat">
+              <span class="stat-number cf-max-rating">{codeforcesStats.maxRating}</span>
+              <span class="stat-label mono">Max</span>
+            </div>
+            <div class="breakdown-stat">
+              <span class="stat-number cf-rank" id="cf-rank-val">{codeforcesStats.rank}</span>
+              <span class="stat-label mono">Rank</span>
+            </div>
+            <div class="breakdown-stat">
+              <span class="stat-number cf-solved">{codeforcesStats.solved}</span>
+              <span class="stat-label mono">Solved</span>
+            </div>
+            <div class="breakdown-stat">
+              <span class="stat-number cf-subs">{codeforcesStats.totalSubmissions}</span>
+              <span class="stat-label mono">Submissions</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Codeforces View Controls (Heatmap & Rating Graph) ── -->
+        <div class="cf-view-toolbar">
+          <div class="cf-view-switch" role="tablist" aria-label="Codeforces Display View">
+            <button
+              type="button"
+              class="cf-tab-btn active mono"
+              role="tab"
+              aria-selected="true"
+              aria-controls="cf-heatmap-view"
+              data-target="cf-heatmap-view"
+            >
+              Activity Heatmap
+            </button>
+            <button
+              type="button"
+              class="cf-tab-btn mono"
+              role="tab"
+              aria-selected="false"
+              aria-controls="cf-graph-view"
+              data-target="cf-graph-view"
+            >
+              Rating Graph
+            </button>
+          </div>
+
+          <span class="cf-sync-badge mono" id="cf-sync-badge">
+            <span class="sync-dot" aria-hidden="true"></span>
+            <span id="cf-sync-text">Live Sync</span>
+          </span>
+        </div>
+
+        <!-- ── VIEW 1: Submissions Heatmap (Active by default) ──── -->
+        <div class="cf-view-panel cf-heatmap-panel active" id="cf-heatmap-view">
+          <div class="heatmap-wrapper" tabindex="0" role="region" aria-label="Codeforces Submissions Heatmap">
+            <div class="heatmap-grid-scroll">
+              <div class="heatmap-container">
+                <div class="heatmap-days-legend mono" aria-hidden="true">
+                  <span>Mon</span>
+                  <span>Wed</span>
+                  <span>Fri</span>
+                </div>
+                <div class="heatmap-columns">
+                  {cfWeeks.map((week) => (
+                    <div class="heatmap-col">
+                      {week.map((day) => (
+                        <span
+                          class={`heatmap-cell cf-level-${day.level}`}
+                          title={`${day.count} submissions on ${day.date}`}
+                          data-count={day.count}
+                          data-date={day.date}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Heatmap Legend -->
+          <div class="heatmap-footer">
+            <span class="footer-meta mono">Submissions in the last 12 months</span>
+            <div class="heatmap-legend" aria-hidden="true">
+              <span class="mono">0</span>
+              <span class="heatmap-cell cf-level-0"></span>
+              <span class="heatmap-cell cf-level-1"></span>
+              <span class="heatmap-cell cf-level-2"></span>
+              <span class="heatmap-cell cf-level-3"></span>
+              <span class="heatmap-cell cf-level-4"></span>
+              <span class="mono">5+</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── VIEW 2: Rating Graph with Division Bands ──────── -->
+        <div class="cf-view-panel cf-graph-panel" id="cf-graph-view" style="display: none;">
+          <div class="cf-graph-topbar">
+            <div class="cf-filter-badge mono" aria-label="Filter: Only rated contests">
+              <span>Only rated</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 10l5 5 5-5z" />
+              </svg>
+            </div>
+            <div class="cf-legend-item mono">
+              <span class="legend-swatch" aria-hidden="true"></span>
+              <span>{codeforcesStats.handle}</span>
+            </div>
+          </div>
+
+          <div class="cf-chart-container">
+            <svg
+              id="cf-rating-svg"
+              class="cf-rating-svg"
+              viewBox="0 0 800 320"
+              preserveAspectRatio="xMidYMid meet"
+              aria-label="Codeforces Rating Chart"
+            >
+              <!-- Y-Axis Ticks -->
+              <g class="cf-y-ticks mono" aria-hidden="true">
+                <text x="50" y="48" text-anchor="end">1900</text>
+                <text x="50" y="85" text-anchor="end">1600</text>
+                <text x="50" y="110" text-anchor="end">1400</text>
+                <text x="50" y="135" text-anchor="end">1200</text>
+              </g>
+
+              <!-- Chart Background & Rating Bands -->
+              <g class="cf-bands">
+                <rect
+                  x={originX}
+                  y={originY}
+                  width={graphWidth}
+                  height={graphHeight}
+                  class="cf-frame-border"
+                />
+                <rect
+                  x={originX}
+                  y={bandCM.y}
+                  width={graphWidth}
+                  height={bandCM.h}
+                  class="cf-band cf-band-cm"
+                />
+                <rect
+                  x={originX}
+                  y={bandExp.y}
+                  width={graphWidth}
+                  height={bandExp.h}
+                  class="cf-band cf-band-expert"
+                />
+                <rect
+                  x={originX}
+                  y={bandSpec.y}
+                  width={graphWidth}
+                  height={bandSpec.h}
+                  class="cf-band cf-band-specialist"
+                />
+                <rect
+                  x={originX}
+                  y={bandPupil.y}
+                  width={graphWidth}
+                  height={bandPupil.h}
+                  class="cf-band cf-band-pupil"
+                />
+                <rect
+                  x={originX}
+                  y={bandNewbie.y}
+                  width={graphWidth}
+                  height={bandNewbie.h}
+                  class="cf-band cf-band-newbie"
+                />
+
+                <line x1={originX} y1={y1900} x2={originX + graphWidth} y2={y1900} class="cf-gridline" />
+                <line x1={originX} y1={y1600} x2={originX + graphWidth} y2={y1600} class="cf-gridline" />
+                <line x1={originX} y1={y1400} x2={originX + graphWidth} y2={y1400} class="cf-gridline" />
+                <line x1={originX} y1={y1200} x2={originX + graphWidth} y2={y1200} class="cf-gridline" />
+              </g>
+
+              {contestPoints.length > 1 && (
+                <polyline
+                  points={linePointsStr}
+                  class="cf-trend-line"
+                />
+              )}
+
+              <g class="cf-points-layer" id="cf-points-layer">
+                {contestPoints.map((p) => (
+                  <g class="cf-point-group" tabindex="0">
+                    <line
+                      x1={p.x}
+                      y1={originY}
+                      x2={p.x}
+                      y2={originY + graphHeight}
+                      class="cf-hairline"
+                    />
+                    <circle cx={p.x} cy={p.y} r="6" class="cf-point-outer" />
+                    <circle cx={p.x} cy={p.y} r="2.5" class="cf-point-inner" />
+
+                    <text
+                      x={p.x}
+                      y={originY + graphHeight + 22}
+                      text-anchor="middle"
+                      class="cf-x-date mono"
+                    >
+                      {p.dateStr}
+                    </text>
+
+                    <g class="cf-tooltip" transform={`translate(${p.x}, ${Math.max(35, p.y - 75)})`}>
+                      <rect
+                        x="-95"
+                        y="-12"
+                        width="190"
+                        height="64"
+                        rx="8"
+                        class="cf-tooltip-box"
+                      />
+                      <text x="0" y="8" text-anchor="middle" class="cf-tt-title mono">
+                        {p.contestName.length > 24 ? p.contestName.slice(0, 22) + '...' : p.contestName}
+                      </text>
+                      <text x="0" y="25" text-anchor="middle" class="cf-tt-stat mono">
+                        Rank: #{p.rank.toLocaleString()} · {p.dateStr}
+                      </text>
+                      <text x="0" y="42" text-anchor="middle" class="cf-tt-rating mono">
+                        Rating: <tspan class="cf-tt-bold">{p.newRating}</tspan> ({p.deltaStr})
+                      </text>
+                    </g>
+                  </g>
+                ))}
+              </g>
+            </svg>
+          </div>
+
+          <div class="heatmap-footer">
+            <span class="footer-meta mono">
+              Official contest rating trajectory · Codeforces divisions: Newbie, Pupil, Specialist, Expert, Candidate Master
+            </span>
+            <a
+              href="https://codeforces.com/profile/SukumarRoy"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="cf-view-live mono"
+            >
+              Verify on Codeforces ↗
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Client Script for Live Codeforces Sync & Tab Switcher -->
+<script>
+  function setupCodeforcesInteractions() {
+    // 1. Tab Switcher
+    const tabBtns = document.querySelectorAll<HTMLButtonElement>('.cf-tab-btn');
+    const heatmapView = document.getElementById('cf-heatmap-view');
+    const graphView = document.getElementById('cf-graph-view');
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach((b) => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+        const target = btn.getAttribute('data-target');
+
+        if (target === 'cf-heatmap-view') {
+          if (heatmapView) {
+            heatmapView.classList.add('active');
+            heatmapView.style.display = 'block';
+          }
+          if (graphView) {
+            graphView.classList.remove('active');
+            graphView.style.display = 'none';
+          }
+        } else if (target === 'cf-graph-view') {
+          if (graphView) {
+            graphView.classList.add('active');
+            graphView.style.display = 'block';
+          }
+          if (heatmapView) {
+            heatmapView.classList.remove('active');
+            heatmapView.style.display = 'none';
+          }
+        }
+      });
+    });
+
+    // 2. Live Sync
+    async function syncCodeforcesLive() {
+      const syncText = document.getElementById('cf-sync-text');
+      const syncDot = document.querySelector('.sync-dot');
+      const ratingVal = document.getElementById('cf-rating-val');
+      const rankVal = document.getElementById('cf-rank-val');
+
+      try {
+        const [uRes, rRes] = await Promise.all([
+          fetch('https://codeforces.com/api/user.info?handles=SukumarRoy'),
+          fetch('https://codeforces.com/api/user.rating?handle=SukumarRoy')
+        ]);
+
+        if (uRes.ok) {
+          const uData = await uRes.json();
+          if (uData.status === 'OK' && uData.result?.[0]) {
+            const u = uData.result[0];
+            if (ratingVal && u.rating !== undefined) ratingVal.textContent = u.rating.toString();
+            if (rankVal && u.rank) {
+              rankVal.textContent = u.rank.charAt(0).toUpperCase() + u.rank.slice(1);
+            }
+          }
+        }
+
+        if (rRes.ok) {
+          const rData = await rRes.json();
+          if (rData.status === 'OK' && Array.isArray(rData.result)) {
+            if (syncText) syncText.textContent = 'Live (Synced)';
+            if (syncDot) syncDot.classList.add('synced');
+          }
+        }
+      } catch (e) {
+        if (syncText) syncText.textContent = 'Live Cache';
+      }
+    }
+
+    syncCodeforcesLive();
+  }
+
+  if (typeof window !== 'undefined') {
+    setupCodeforcesInteractions();
+  }
+</script>
+
+<style>
+  .coding-profiles-section {
+    background: var(--color-bg-canvas);
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .profiles-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-600);
+  }
+
+  /* ── Profile Cards ─────────────────────────────────────── */
+  .profile-card {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-large);
+    padding: var(--space-500);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-400);
+    transition:
+      border-color var(--motion-normal) var(--motion-easing),
+      transform var(--motion-normal) var(--motion-easing),
+      box-shadow var(--motion-normal) var(--motion-easing);
+  }
+
+  .profile-card:hover {
+    border-color: var(--color-border-strong);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Header */
+  .profile-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-300);
+  }
+
+  .profile-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-200);
+  }
+
+  .platform-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-medium);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border-subtle);
+    color: var(--color-text-primary);
+  }
+
+  .leetcode-icon-wrapper {
+    color: #FFA116;
+    background: rgba(255, 161, 22, 0.08);
+    border-color: rgba(255, 161, 22, 0.2);
+  }
+
+  .codeforces-icon-wrapper {
+    background: rgba(33, 150, 243, 0.08);
+    border-color: rgba(33, 150, 243, 0.25);
+  }
+
+  .platform-name {
+    font-size: var(--font-size-heading-m);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-snug);
+  }
+
+  .platform-handle {
+    font-size: var(--font-size-label);
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color var(--motion-fast) var(--motion-easing);
+  }
+
+  .platform-handle:hover {
+    color: #d6ff66;
+    text-decoration: underline;
+  }
+
+  .stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-100);
+    padding: var(--space-100) var(--space-250);
+    border-radius: var(--radius-pill);
+    background: rgba(200, 255, 73, 0.08);
+    border: 1px solid rgba(200, 255, 73, 0.2);
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+  }
+
+  .stat-pill strong {
+    color: var(--color-accent);
+    font-weight: var(--font-weight-bold);
+  }
+
+  /* Breakdown badges */
+  .leetcode-breakdown,
+  .codeforces-breakdown {
+    display: flex;
+    align-items: center;
+    gap: var(--space-250);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-medium);
+    padding: var(--space-150) var(--space-300);
+  }
+
+  :global([data-theme="light"]) .leetcode-breakdown,
+  :global([data-theme="light"]) .codeforces-breakdown {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  .breakdown-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .stat-number {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    font-weight: var(--font-weight-bold);
+  }
+
+  .lc-solved { color: var(--color-text-primary); }
+  .lc-easy   { color: #00B8A3; }
+  .lc-med    { color: #FFA116; }
+  .lc-hard   { color: #EF4743; }
+
+  .cf-rating     { color: #3B82F6; }
+  .cf-max-rating { color: var(--color-text-secondary); }
+  .cf-rank       { color: var(--color-accent); font-size: 0.95rem; }
+  .cf-solved     { color: var(--color-text-primary); }
+  .cf-subs       { color: var(--color-text-secondary); }
+
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--color-text-secondary);
+  }
+
+  /* ── Codeforces View Switcher Toolbar ───────────────────── */
+  .cf-view-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-200);
+    padding-bottom: var(--space-100);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .cf-view-switch {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-pill);
+    padding: 3px;
+    gap: 3px;
+  }
+
+  :global([data-theme="light"]) .cf-view-switch {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .cf-tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-label);
+    padding: 4px 14px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    font-weight: var(--font-weight-medium);
+    transition:
+      background var(--motion-fast) var(--motion-easing),
+      color var(--motion-fast) var(--motion-easing),
+      box-shadow var(--motion-fast) var(--motion-easing);
+  }
+
+  .cf-tab-btn:hover {
+    color: var(--color-text-primary);
+  }
+
+  .cf-tab-btn.active {
+    background: #2563EB;
+    color: #FFFFFF;
+    font-weight: var(--font-weight-bold);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+  }
+
+  .cf-view-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-300);
+    width: 100%;
+  }
+
+  /* ── Heatmap Grid (Fixed Contrast for Dark & Light Mode) ── */
+  .heatmap-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: var(--space-100);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .heatmap-grid-scroll {
+    min-width: 720px;
+  }
+
+  .heatmap-container {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-150);
+  }
+
+  .heatmap-days-legend {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 90px;
+    font-size: 0.6rem;
+    color: var(--color-text-secondary);
+    padding-top: 14px;
+    padding-bottom: 2px;
+    user-select: none;
+  }
+
+  .heatmap-columns {
+    display: flex;
+    gap: 3px;
+    flex: 1;
+  }
+
+  .heatmap-col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  /* Clear, high-contrast base cell that never vanishes */
+  .heatmap-cell {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    background: #1C1F28;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform var(--motion-fast) var(--motion-easing);
+    cursor: pointer;
+  }
+
+  .heatmap-cell:hover {
+    transform: scale(1.4);
+    z-index: 10;
+  }
+
+  /* GitHub Colors (Lime/Green Scale) */
+  .gh-level-0 {
+    background: #1C1F28;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .gh-level-1 {
+    background: #2D4C10;
+    border: 1px solid #4D7A1A;
+  }
+  .gh-level-2 {
+    background: #508018;
+    border: 1px solid #6EAE20;
+  }
+  .gh-level-3 {
+    background: #84CE25;
+    border: 1px solid #A2F830;
+  }
+  .gh-level-4 {
+    background: #C8FF49;
+    border: 1px solid #DCFF7D;
+    box-shadow: 0 0 6px rgba(200, 255, 73, 0.7);
+  }
+
+  :global([data-theme="light"]) .heatmap-cell {
+    background: #EBEDF0;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  :global([data-theme="light"]) .gh-level-0 {
+    background: #EBEDF0;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  :global([data-theme="light"]) .gh-level-1 {
+    background: #9BE9A8;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  :global([data-theme="light"]) .gh-level-2 {
+    background: #40C463;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  :global([data-theme="light"]) .gh-level-3 {
+    background: #30A14E;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  :global([data-theme="light"]) .gh-level-4 {
+    background: #216E39;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  /* LeetCode Colors (Amber/Gold Scale) */
+  .lc-level-0 {
+    background: #1C1F28;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .lc-level-1 {
+    background: #523400;
+    border: 1px solid #754B00;
+  }
+  .lc-level-2 {
+    background: #8A5800;
+    border: 1px solid #B27200;
+  }
+  .lc-level-3 {
+    background: #C77E00;
+    border: 1px solid #F09800;
+  }
+  .lc-level-4 {
+    background: #FFA116;
+    border: 1px solid #FFBA52;
+    box-shadow: 0 0 6px rgba(255, 161, 22, 0.7);
+  }
+
+  :global([data-theme="light"]) .lc-level-0 {
+    background: #EBEDF0;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  :global([data-theme="light"]) .lc-level-1 {
+    background: #FFE0A3;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  :global([data-theme="light"]) .lc-level-2 {
+    background: #FFB84D;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  :global([data-theme="light"]) .lc-level-3 {
+    background: #F59E0B;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  :global([data-theme="light"]) .lc-level-4 {
+    background: #D97706;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  /* Codeforces Colors (Shades of Blue Scale) */
+  .cf-level-0 {
+    background: #1C1F28;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .cf-level-1 {
+    background: #1E3A8A;
+    border: 1px solid #2563EB;
+  }
+  .cf-level-2 {
+    background: #2563EB;
+    border: 1px solid #3B82F6;
+  }
+  .cf-level-3 {
+    background: #3B82F6;
+    border: 1px solid #60A5FA;
+  }
+  .cf-level-4 {
+    background: #60A5FA;
+    border: 1px solid #93C5FD;
+    box-shadow: 0 0 6px rgba(96, 165, 250, 0.7);
+  }
+
+  :global([data-theme="light"]) .cf-level-0 {
+    background: #EBEDF0;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  :global([data-theme="light"]) .cf-level-1 {
+    background: #BFDBFE;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  :global([data-theme="light"]) .cf-level-2 {
+    background: #60A5FA;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  :global([data-theme="light"]) .cf-level-3 {
+    background: #2563EB;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  :global([data-theme="light"]) .cf-level-4 {
+    background: #1D4ED8;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  /* ── Codeforces Rating Graph Styles ─────────────────────── */
+  .cf-graph-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-200);
+  }
+
+  .cf-sync-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+  }
+
+  .sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3B82F6;
+    box-shadow: 0 0 6px #3B82F6;
+    animation: pulseSync 2s infinite ease-in-out;
+  }
+
+  .sync-dot.synced {
+    background: var(--color-accent);
+    box-shadow: 0 0 6px var(--color-accent);
+  }
+
+  @keyframes pulseSync {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .cf-filter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: var(--radius-small);
+    border: 1px solid var(--color-border-default);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-text-primary);
+  }
+
+  :global([data-theme="light"]) .cf-filter-badge {
+    background: #FFFFFF;
+    border-color: rgba(0, 0, 0, 0.15);
+  }
+
+  .cf-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--color-text-primary);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--color-border-subtle);
+    padding: 3px 8px;
+    border-radius: var(--radius-small);
+  }
+
+  :global([data-theme="light"]) .cf-legend-item {
+    background: #FFFFFF;
+    border-color: rgba(0, 0, 0, 0.15);
+  }
+
+  .legend-swatch {
+    width: 10px;
+    height: 10px;
+    background: #FFC107;
+    border-radius: 2px;
+  }
+
+  .cf-chart-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cf-rating-svg {
+    width: 100%;
+    height: auto;
+    min-width: 680px;
+    display: block;
+    user-select: none;
+  }
+
+  .cf-y-ticks text {
+    fill: var(--color-text-secondary);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .cf-x-date {
+    fill: var(--color-text-primary);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .cf-frame-border {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.25);
+    stroke-width: 1.5;
+  }
+
+  :global([data-theme="light"]) .cf-frame-border {
+    stroke: #555555;
+    stroke-width: 1.5;
+  }
+
+  .cf-gridline {
+    stroke: rgba(255, 255, 255, 0.15);
+    stroke-width: 1;
+  }
+
+  :global([data-theme="light"]) .cf-gridline {
+    stroke: rgba(0, 0, 0, 0.18);
+  }
+
+  /* Codeforces Tier Bands */
+  .cf-band-cm         { fill: rgba(255, 136, 255, 0.35); }
+  .cf-band-expert     { fill: rgba(170, 170, 255, 0.35); }
+  .cf-band-specialist { fill: rgba(119, 221, 187, 0.35); }
+  .cf-band-pupil      { fill: rgba(119, 255, 119, 0.35); }
+  .cf-band-newbie     { fill: rgba(190, 195, 205, 0.28); }
+
+  :global([data-theme="light"]) .cf-band-cm         { fill: #FF88FF; }
+  :global([data-theme="light"]) .cf-band-expert     { fill: #AAAAFF; }
+  :global([data-theme="light"]) .cf-band-specialist { fill: #77DDBB; }
+  :global([data-theme="light"]) .cf-band-pupil      { fill: #77FF77; }
+  :global([data-theme="light"]) .cf-band-newbie     { fill: #CCCCCC; }
+
+  .cf-hairline {
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 1;
+    stroke-dasharray: 2 2;
+  }
+
+  :global([data-theme="light"]) .cf-hairline {
+    stroke: rgba(0, 0, 0, 0.25);
+  }
+
+  .cf-point-outer {
+    fill: #FF3333;
+    transition: transform var(--motion-fast) var(--motion-easing), r var(--motion-fast);
+    cursor: pointer;
+  }
+
+  .cf-point-inner {
+    fill: #FFFFFF;
+    pointer-events: none;
+  }
+
+  .cf-trend-line {
+    fill: none;
+    stroke: #FFC107;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .cf-point-group:hover .cf-hairline,
+  .cf-point-group:focus .cf-hairline {
+    stroke: var(--color-accent);
+    stroke-width: 1.5;
+    stroke-dasharray: none;
+  }
+
+  .cf-point-group:hover .cf-point-outer,
+  .cf-point-group:focus .cf-point-outer {
+    r: 8.5;
+  }
+
+  .cf-tooltip {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--motion-fast) var(--motion-easing);
+  }
+
+  .cf-point-group:hover .cf-tooltip,
+  .cf-point-group:focus .cf-tooltip {
+    opacity: 1;
+  }
+
+  .cf-tooltip-box {
+    fill: #0C0E12;
+    stroke: var(--color-border-strong);
+    stroke-width: 1;
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+  }
+
+  :global([data-theme="light"]) .cf-tooltip-box {
+    fill: #FFFFFF;
+    stroke: rgba(0, 0, 0, 0.2);
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.15));
+  }
+
+  .cf-tt-title {
+    fill: var(--color-text-primary);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .cf-tt-stat {
+    fill: var(--color-text-secondary);
+    font-size: 10px;
+  }
+
+  .cf-tt-rating {
+    fill: var(--color-text-secondary);
+    font-size: 10.5px;
+  }
+
+  .cf-tt-bold {
+    fill: #3B82F6;
+    font-weight: 700;
+  }
+
+  .cf-view-live {
+    font-size: var(--font-size-label);
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color var(--motion-fast) var(--motion-easing);
+  }
+
+  .cf-view-live:hover {
+    color: #d6ff66;
+    text-decoration: underline;
+  }
+
+  /* ── Legend & Footer ─────────────────────────────────────── */
+  .heatmap-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-200);
+    padding-top: var(--space-200);
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .footer-meta {
+    font-size: var(--font-size-label);
+    color: var(--color-text-secondary);
+  }
+
+  .heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    color: var(--color-text-secondary);
+  }
+</style>

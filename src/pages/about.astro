@@ -1,0 +1,636 @@
+---
+// src/pages/about.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+
+const education = [
+  {
+    degree: 'B.Tech in Computer Science and Engineering',
+    specialisation: 'Specialization in Cybersecurity · CGPA: 8.63',
+    institution: 'Bennett University',
+    period: '2024 – 2028 (Expected)',
+    type: 'Undergraduate',
+  },
+  {
+    degree: 'Higher Secondary (CBSE)',
+    specialisation: 'Score: 78%',
+    institution: 'Global Public School, Kota',
+    period: '2024',
+    type: 'Higher Secondary',
+  },
+  {
+    degree: 'Secondary Education (ICSE)',
+    specialisation: 'Score: 92%',
+    institution: 'Convent of Jesus and Mary, Ranaghat',
+    period: '2022',
+    type: 'Secondary',
+  },
+];
+
+const certifications = [
+  {
+    title: 'Google IT Support Professional Certificate',
+    issuer: 'Google / Coursera',
+    date: 'Oct 2026',
+    url: 'https://www.coursera.org/account/accomplishments/specialization/certificate/QTESML08T078',
+    details: 'Covers Technical Support Fundamentals, Networking, Operating Systems, System Administration, and IT Security.',
+  },
+  {
+    title: 'AI for Cybersecurity Specialization',
+    issuer: 'Johns Hopkins University / Coursera',
+    date: 'Mar 2026',
+    url: 'https://www.coursera.org/account/accomplishments/specialization/certificate/EZM4UKPIOSR6',
+    details: 'Covers AI for Cybersecurity, Advanced Malware & Network Anomaly Detection, and Securing AI.',
+  },
+  {
+    title: 'Post-Quantum Cryptography Foundations',
+    issuer: 'Edureka / Coursera',
+    date: 'Oct 2026',
+    url: 'https://www.coursera.org/account/accomplishments/certificate/H0VU74XBQ27Q',
+  },
+  {
+    title: 'Automata and Computability',
+    issuer: 'BITS Pilani / Coursera',
+    date: 'Oct 2026',
+    url: 'https://www.coursera.org/account/accomplishments/certificate/SGKBDQPHP4YM',
+  },
+  {
+    title: 'Introduction to Microprocessors',
+    issuer: 'Arm / Coursera',
+    date: 'Mar 2026',
+    url: 'https://www.coursera.org/account/accomplishments/certificate/0FOVMAESYK7W',
+  },
+  {
+    title: 'Software Engineering',
+    issuer: 'IIT Kharagpur (NPTEL)',
+    date: 'Oct 2025',
+    url: 'https://nptel.ac.in/noc/E_Certificate/NPTEL25CS108S66560228110622960',
+  },
+  {
+    title: 'Developing Soft Skills and Personality',
+    issuer: 'IIT Kanpur (NPTEL)',
+    date: 'Oct 2026',
+    url: 'https://nptel.ac.in/verify/NOC-MJ3S-49SD-FSR0P',
+  },
+  {
+    title: 'Introduction to Linear Algebra with MATLAB',
+    issuer: 'MathWorks',
+    date: 'Apr 2025',
+    url: 'https://matlabacademy.mathworks.com/progress/share/certificate.html?id=32bbb494-e581-47b4-a529-ea05141fb15e&',
+  },
+  {
+    title: 'Data Structures and Algorithms',
+    issuer: 'Infosys Springboard',
+    date: '2025',
+  },
+];
+
+const skills = [
+  {
+    group: 'Security Research',
+    items: ['Threat Intelligence', 'Malware Analysis', 'Vulnerability Research', 'Red Teaming', 'SOC / SIEM', 'Incident Response'],
+  },
+  {
+    group: 'Cryptography & PQC',
+    items: ['Signal Protocol', 'X3DH', 'Double Ratchet', 'Post-Quantum Cryptography', 'Secure Messaging', 'AES', 'SHA-256'],
+  },
+  {
+    group: 'Programming & Systems',
+    items: ['Java', 'Python', 'C++', 'Linux', 'Git', 'Android'],
+  },
+  {
+    group: 'AI / ML',
+    items: ['Transformers', 'PyTorch', 'XAI', 'NLP', 'pandas', 'scikit-learn'],
+  },
+];
+---
+
+<BaseLayout
+  title="About"
+  description="About Mainak Sarkar — B.Tech CSE (Cybersecurity) student at Bennett University, cybersecurity researcher and security engineer exploring threat intelligence and post-quantum cryptography."
+>
+  <SiteHeader />
+
+  <main id="main-content">
+
+    <!-- Profile section -->
+    <section class="section about-hero" aria-labelledby="about-heading">
+      <div class="container about-hero-inner">
+        <div class="about-portrait">
+          <div class="portrait-halo" aria-hidden="true"></div>
+          <div class="portrait-frame">
+            <img
+              src="/images/profile.png"
+              alt="Mainak Sarkar"
+              width="280"
+              height="280"
+              loading="eager"
+            />
+          </div>
+        </div>
+        <div class="about-intro">
+          <SectionHeading
+            eyebrow="About"
+            heading="Mainak Sarkar"
+            id="about-heading"
+          />
+          <p>
+            I'm a second-year B.Tech Computer Science and Engineering student
+            specialising in Cybersecurity at Bennett University (class of 2028).
+          </p>
+          <p>
+            My work sits at the intersection of security research, applied
+            cryptography and security engineering. I study how adversaries
+            operate — their tools, techniques and infrastructure — and I
+            build systems designed to remain secure even as the threat landscape
+            evolves.
+          </p>
+          <p>
+            Currently I'm exploring post-quantum cryptography and its
+            application to secure messaging protocols, alongside work on
+            explainable AI for security operations.
+          </p>
+          <div class="social-links">
+            <a
+              href="https://github.com/Starhopperr"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="social-btn"
+              aria-label="GitHub profile"
+            >
+              GitHub
+            </a>
+            <a
+              href="https://www.linkedin.com/in/starhoppersenpai/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="social-btn"
+              aria-label="LinkedIn profile"
+            >
+              LinkedIn
+            </a>
+            <a href="mailto:mainak2ms@gmail.com" class="social-btn">
+              Email
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills -->
+    <section class="section skills-section" aria-labelledby="skills-heading">
+      <div class="container">
+        <SectionHeading
+          eyebrow="Capabilities"
+          heading="Skills & Focus"
+          id="skills-heading"
+          description="Technical areas I actively work in. Proficiency varies by domain and is confirmed by project work and coursework."
+        />
+        <div class="skills-grid">
+          {skills.map(group => (
+            <div class="skill-group">
+              <h3 class="skill-group-title mono">{group.group}</h3>
+              <div class="skill-tags">
+                {group.items.map(item => (
+                  <span class="skill-tag">{item}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Education -->
+    <section class="section" aria-labelledby="education-heading">
+      <div class="container">
+        <SectionHeading
+          eyebrow="Background"
+          heading="Education"
+          id="education-heading"
+        />
+        <div class="timeline">
+          {education.map(edu => (
+            <div class="timeline-item">
+              <div class="timeline-dot" aria-hidden="true"></div>
+              <div class="timeline-content">
+                <span class="timeline-period mono">{edu.period}</span>
+                <h3 class="timeline-title">{edu.degree}</h3>
+                {edu.specialisation && (
+                  <p class="timeline-sub">{edu.specialisation}</p>
+                )}
+                <p class="timeline-org">{edu.institution}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Certifications -->
+    <section class="section" aria-labelledby="certs-heading">
+      <div class="container">
+        <SectionHeading
+          eyebrow="Credentials"
+          heading="Certifications"
+          id="certs-heading"
+        />
+        <div class="certs-grid">
+          {certifications.map(cert => (
+            <div class="cert-card">
+              <div class="cert-header">
+                <span class="cert-date mono">{cert.date}</span>
+              </div>
+              <h3 class="cert-title">
+                {cert.url ? (
+                  <a href={cert.url} target="_blank" rel="noopener noreferrer">
+                    {cert.title}
+                  </a>
+                ) : cert.title}
+              </h3>
+              <p class="cert-issuer">{cert.issuer}</p>
+              {cert.details && <p class="cert-details">{cert.details}</p>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Publication -->
+    <section class="section" aria-labelledby="pub-heading">
+      <div class="container">
+        <SectionHeading
+          eyebrow="Research output"
+          heading="Publication"
+          id="pub-heading"
+        />
+        <div class="publication-card">
+          <span class="pub-type mono">Book Chapter</span>
+          <h3 class="pub-title">
+            Developing a Neural Machine Translation Tool for Kokborok-to-English:
+            A Step Toward Preserving Indigenous Languages
+          </h3>
+          <p class="pub-authors">
+            By Sanchali Das, Pranjal, Mainak Sarkar
+          </p>
+          <p class="pub-venue">
+            Chapter from book <em>Sustainable Developments in Computer Engineering, Green Technology and Smart Systems</em>
+          </p>
+          <a
+            href="https://doi.org/10.1201/9781003743767-121"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="pub-doi"
+          >
+            DOI: 10.1201/9781003743767-121 →
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .about-hero { padding-block: var(--space-1000) var(--space-800); }
+
+  .about-hero-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-800);
+    align-items: start;
+  }
+
+  @media (min-width: 1024px) {
+    .about-hero-inner {
+      grid-template-columns: 280px 1fr;
+      align-items: center;
+    }
+  }
+
+  .about-portrait {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 280px;
+    margin-inline: auto;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .about-portrait {
+      margin-inline: 0;
+    }
+  }
+
+  .about-portrait .portrait-halo {
+    position: absolute;
+    inset: -24px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(200, 255, 73, 0.16) 0%, rgba(200, 255, 73, 0.03) 55%, transparent 75%);
+    filter: blur(24px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  :global([data-theme="light"]) .about-portrait .portrait-halo {
+    background: radial-gradient(circle, rgba(43, 89, 0, 0.12) 0%, transparent 70%);
+    filter: blur(20px);
+  }
+
+  .about-portrait .portrait-frame {
+    position: relative;
+    z-index: 2;
+    width: min(260px, 75vw);
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    border: 2px solid var(--color-accent);
+    box-shadow:
+      0 0 22px rgba(200, 255, 73, 0.22),
+      0 10px 30px rgba(0, 0, 0, 0.45);
+    background: radial-gradient(circle at 55% 35%, #223418 0%, #121c0e 45%, #080c07 100%);
+    transition:
+      transform var(--motion-normal) var(--motion-easing),
+      box-shadow var(--motion-normal) var(--motion-easing);
+  }
+
+  :global([data-theme="light"]) .about-portrait .portrait-frame {
+    border-color: var(--color-accent);
+    background: radial-gradient(circle at 55% 35%, #E1EBD6 0%, #D2E0C5 45%, #C2D4B4 100%);
+    box-shadow:
+      0 0 18px rgba(43, 89, 0, 0.15),
+      0 10px 28px rgba(0, 0, 0, 0.12);
+  }
+
+  .about-portrait:hover .portrait-frame {
+    transform: scale(1.02);
+    box-shadow:
+      0 0 28px rgba(200, 255, 73, 0.35),
+      0 14px 38px rgba(0, 0, 0, 0.55);
+  }
+
+  .about-portrait .portrait-frame img {
+    width: 90%;
+    height: 90%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4));
+  }
+
+  .about-intro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-300);
+  }
+
+  .about-intro p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-body-l);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .social-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-200);
+    margin-top: var(--space-200);
+  }
+
+  .social-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-100) var(--space-300);
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border-strong);
+    font-size: var(--font-size-body-s);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    min-height: 44px;
+    transition: background var(--motion-fast) var(--motion-easing),
+                border-color var(--motion-fast) var(--motion-easing);
+  }
+
+  .social-btn:hover {
+    background: var(--color-bg-surface);
+    border-color: var(--color-text-secondary);
+  }
+
+  /* Skills */
+  .skills-section {
+    background: var(--color-bg-surface);
+    border-top: 1px solid var(--color-border-subtle);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-500);
+  }
+
+  .skill-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-200);
+  }
+
+  .skill-group-title {
+    font-size: var(--font-size-label);
+    font-family: var(--font-mono);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-100);
+  }
+
+  .skill-tag {
+    font-size: var(--font-size-body-s);
+    padding: var(--space-050) var(--space-150);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  /* Timeline */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-left: var(--space-400);
+    border-left: 1px solid var(--color-border-default);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: var(--space-600);
+  }
+
+  .timeline-item:last-child { padding-bottom: 0; }
+
+  .timeline-dot {
+    position: absolute;
+    left: calc(-1 * var(--space-400) - 5px);
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 10px rgba(200, 255, 73, 0.4);
+  }
+
+  .timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-100);
+  }
+
+  .timeline-period {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .timeline-title {
+    font-size: var(--font-size-heading-m);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+
+  .timeline-sub {
+    font-size: var(--font-size-body);
+    color: var(--color-text-secondary);
+  }
+
+  .timeline-org {
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+  }
+
+  /* Certifications */
+  .certs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--layout-grid-gap);
+  }
+
+  .cert-card {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-large);
+    padding: var(--space-400);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-150);
+    transition: border-color var(--motion-normal) var(--motion-easing);
+  }
+
+  .cert-card:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  .cert-date {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .cert-title {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-snug);
+  }
+
+  .cert-title a {
+    color: inherit;
+    transition: color var(--motion-fast) var(--motion-easing);
+  }
+
+  .cert-title a:hover {
+    color: var(--color-accent);
+  }
+
+  .cert-issuer {
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+  }
+
+  .cert-details {
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    border-top: 1px solid var(--color-border-subtle);
+    padding-top: var(--space-100);
+  }
+
+  /* Publication */
+  .publication-card {
+    background: var(--color-bg-surface);
+    border: 1px solid rgba(200, 255, 73, 0.15);
+    border-radius: var(--radius-large);
+    padding: var(--space-600);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-200);
+    max-width: var(--layout-reading-max);
+  }
+
+  .pub-type {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .pub-title {
+    font-size: var(--font-size-heading-m);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-snug);
+    color: var(--color-text-primary);
+  }
+
+  .pub-authors {
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+  }
+
+  .pub-venue {
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+  }
+
+  .pub-doi {
+    display: inline-block;
+    font-size: var(--font-size-body-s);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-accent);
+    transition: color var(--motion-fast) var(--motion-easing);
+  }
+
+  .pub-doi:hover {
+    color: #d6ff66;
+  }
+</style>

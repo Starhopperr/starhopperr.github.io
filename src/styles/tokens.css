@@ -1,0 +1,123 @@
+/* =============================================================
+   STARHOPPER DESIGN SYSTEM — TOKEN FILE
+   Source: starhopper_atlassian_informed_design_system.md
+   Naming: purpose-based, not appearance-based (ADS convention)
+   ============================================================= */
+
+:root {
+  /* ── Color: Backgrounds (Dark / Night Default) ──────── */
+  --color-bg-canvas:         #0C0E12;
+  --color-bg-surface:        #17191F;
+  --color-bg-surface-raised: #1A1D24;
+  --color-bg-inverse:        #F0EFE9;
+  --color-header-bg:         rgba(12, 14, 18, 0.85);
+
+  /* ── Color: Text ─────────────────────────────────────── */
+  --color-text-primary:   #FFFFFF;
+  --color-text-secondary: #9B9EA7;
+  --color-text-inverse:   #0C0E12;
+
+  /* ── Color: Accent ───────────────────────────────────── */
+  --color-accent:    #C8FF49; /* Brand lime */
+  --color-accent-bg: #C8FF49;
+
+  /* ── Color: Borders ──────────────────────────────────── */
+  --color-border-subtle:  rgba(255, 255, 255, 0.08);
+  --color-border-default: rgba(255, 255, 255, 0.10);
+  --color-border-strong:  rgba(255, 255, 255, 0.15);
+
+  /* ── Color: Overlay ──────────────────────────────────── */
+  --color-overlay: rgba(12, 14, 18, 0.80);
+
+  /* ── Typography: Families ────────────────────────────── */
+  --font-display: 'Manrope', system-ui, sans-serif;
+  --font-mono:    'DM Mono', 'Fira Code', monospace;
+
+  /* ── Typography: Sizes (fluid clamp) ─────────────────── */
+  --font-size-display:    clamp(3.5rem, 8vw, 7rem);
+  --font-size-heading-xl: clamp(2.5rem, 5vw, 3.5rem);
+  --font-size-heading-l:  clamp(1.75rem, 3vw, 2.25rem);
+  --font-size-heading-m:  clamp(1.25rem, 2.5vw, 1.5rem);
+  --font-size-body-l:     clamp(1.125rem, 1.5vw, 1.25rem);
+  --font-size-body:       clamp(0.875rem, 1.2vw, 1rem);
+  --font-size-body-s:     clamp(0.75rem, 1vw, 0.8125rem);
+  --font-size-label:      clamp(0.625rem, 0.9vw, 0.75rem);
+  --font-size-code:       clamp(0.75rem, 1vw, 0.875rem);
+
+  /* ── Typography: Weights ─────────────────────────────── */
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  /* ── Typography: Line Heights ────────────────────────── */
+  --line-height-tight:  1.0;
+  --line-height-snug:   1.15;
+  --line-height-normal: 1.5;
+  --line-height-relaxed:1.65;
+  --line-height-reading:1.6;
+
+  /* ── Typography: Tracking ────────────────────────────── */
+  --tracking-display: -0.05em;
+  --tracking-label:    0.14em;
+
+  /* ── Spacing (8px base) ──────────────────────────────── */
+  --space-050:  4px;
+  --space-100:  8px;
+  --space-150: 12px;
+  --space-200: 16px;
+  --space-250: 20px;
+  --space-300: 24px;
+  --space-400: 32px;
+  --space-500: 40px;
+  --space-600: 48px;
+  --space-800: 64px;
+  --space-1000:80px;
+
+  /* ── Layout ──────────────────────────────────────────── */
+  --layout-content-max:  1280px;
+  --layout-reading-max:  740px;
+  --layout-gutter-mobile: 20px;
+  --layout-gutter-tablet: 32px;
+  --layout-section-desktop: clamp(5.5rem, 8vw, 7rem);
+  --layout-section-mobile:  clamp(4.5rem, 6vw, 5.5rem);
+  --layout-grid-gap: 24px;
+  --layout-grid-gap-compact: 16px;
+
+  /* ── Radius ──────────────────────────────────────────── */
+  --radius-small:  8px;
+  --radius-medium: 14px;
+  --radius-large:  28px;
+  --radius-pill:   999px;
+
+  /* ── Motion ──────────────────────────────────────────── */
+  --motion-fast:   150ms;
+  --motion-normal: 220ms;
+  --motion-reveal: 300ms;
+  --motion-easing: ease-out;
+}
+
+/* =============================================================
+   LIGHT THEME (Day Mode)
+   Uses #F0EFE9 warm paper editorial surface from design system spec
+   ============================================================= */
+[data-theme="light"] {
+  --color-bg-canvas:         #F0EFE9;
+  --color-bg-surface:        #FFFFFF;
+  --color-bg-surface-raised: #F8F7F3;
+  --color-bg-inverse:        #0C0E12;
+  --color-header-bg:         rgba(240, 239, 233, 0.88);
+
+  --color-text-primary:   #0C0E12;
+  --color-text-secondary: #585C66;
+  --color-text-inverse:   #FFFFFF;
+
+  --color-accent:    #2B5900; /* High contrast lime/forest for readable text */
+  --color-accent-bg: #C8FF49;
+
+  --color-border-subtle:  rgba(12, 14, 18, 0.08);
+  --color-border-default: rgba(12, 14, 18, 0.12);
+  --color-border-strong:  rgba(12, 14, 18, 0.22);
+
+  --color-overlay: rgba(240, 239, 233, 0.90);
+}

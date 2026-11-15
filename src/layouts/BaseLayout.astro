@@ -1,0 +1,86 @@
+---
+// BaseLayout.astro — wraps every page
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  canonicalURL?: string;
+  ogType?: 'website' | 'article';
+}
+
+const {
+  title,
+  description = 'Mainak Sarkar — Cybersecurity researcher, security engineer, and B.Tech CSE student at Bennett University. Personal portfolio and research publication.',
+  image = '/images/og-default.png',
+  canonicalURL = Astro.url.href,
+  ogType = 'website',
+} = Astro.props;
+
+const siteURL = 'https://starhoppersenpai.com';
+const fullTitle = title === 'Mainak Sarkar' ? title : `${title} · Mainak Sarkar`;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="generator" content={Astro.generator} />
+
+  <!-- Primary meta -->
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <meta name="author" content="Mainak Sarkar" />
+  <link rel="canonical" href={canonicalURL} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content={ogType} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonicalURL} />
+  <meta property="og:image" content={`${siteURL}${image}`} />
+  <meta property="og:site_name" content="Mainak Sarkar" />
+
+  <!-- Twitter / X card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={fullTitle} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={`${siteURL}${image}`} />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- Fonts: preconnect then load -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap"
+  />
+
+  <!-- RSS -->
+  <link
+    rel="alternate"
+    type="application/rss+xml"
+    title="Mainak Sarkar — Blog"
+    href="/rss.xml"
+  />
+
+  <!-- Global styles -->
+  <style is:global>
+    @import '/src/styles/global.css';
+  </style>
+
+  <!-- Theme Init (Guarantees no flash of incorrect theme) -->
+  <script is:inline>
+    (function() {
+      const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null;
+      const theme = stored || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+  <slot />
+</body>
+</html>

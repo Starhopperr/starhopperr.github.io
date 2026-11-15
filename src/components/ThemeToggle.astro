@@ -1,0 +1,322 @@
+---
+// ThemeToggle.astro — "Glass Switch" day/night toggle based on capturemotion.dev specification
+// Scaled for navigation chrome with design-system tokens and accessible ARIA attributes
+---
+
+<button
+  type="button"
+  class="glass-switch"
+  id="theme-toggle"
+  role="switch"
+  aria-label="Toggle day and night mode"
+  aria-checked="false"
+  title="Toggle day / night mode"
+>
+  <!-- Background glass track -->
+  <span class="track-bg" aria-hidden="true">
+    <!-- Liquid fluid expansion layer -->
+    <span class="track-liquid" aria-hidden="true"></span>
+    <!-- Glass specular highlight lines from spec -->
+    <span class="specular-line specular-line-1" aria-hidden="true"></span>
+    <span class="specular-line specular-line-2" aria-hidden="true"></span>
+  </span>
+
+  <!-- Sliding puck / knob -->
+  <span class="puck" aria-hidden="true">
+    <!-- Knurl grip texture pattern -->
+    <span class="puck-knurl" aria-hidden="true">
+      <svg viewBox="-50 -50 100 100" width="100%" height="100%">
+        <defs>
+          <clipPath id="knurl-clip">
+            <circle r="46"></circle>
+          </clipPath>
+        </defs>
+        <g clip-path="url(#knurl-clip)" stroke-linecap="butt">
+          <g stroke="rgba(255, 255, 255, 0.22)" stroke-width="2.2">
+            <path d="M-60 -48 L-12 -96 M-60 -36 L0 -96 M-60 -24 L12 -96 M-60 -12 L24 -96 M-60 0 L36 -96 M-60 12 L48 -96 M-60 24 L60 -96 M-60 36 L60 -84 M-60 48 L60 -72 M-60 60 L60 -60 M-48 60 L60 -48 M-36 60 L60 -36 M-24 60 L60 -24 M-12 60 L60 -12 M0 60 L60 0 M12 60 L60 12 M24 60 L60 24 M36 60 L60 36"></path>
+          </g>
+          <g stroke="rgba(0, 0, 0, 0.35)" stroke-width="1.2">
+            <path d="M-60 -60 L60 60 M-60 -48 L48 60 M-60 -36 L36 60 M-60 -24 L24 60 M-60 -12 L12 60 M-60 0 L0 60 M-60 12 L-12 60 M-60 24 L-24 60 M-48 -60 L60 48 M-36 -60 L60 36 M-24 -60 L60 24 M-12 -60 L60 12 M0 -60 L60 0 M12 -60 L60 -12 M24 -60 L60 -24"></path>
+          </g>
+        </g>
+      </svg>
+    </span>
+
+    <!-- Moon Icon (Night Mode) -->
+    <span class="icon-moon" aria-hidden="true">
+      <svg viewBox="-128 -128 256 256" width="100%" height="100%">
+        <!-- Drop shadow layer -->
+        <g transform="translate(2 2)" fill="#000000" fill-opacity="0.45">
+          <path d="M-9.01 -61.34 A62 62 0 1 0 57.87 22.25 A54 54 0 0 1 -9.01 -61.34Z"></path>
+          <circle cx="52" cy="30" r="6"></circle>
+          <circle cx="34" cy="58" r="4"></circle>
+        </g>
+        <!-- Lime/glow moon -->
+        <g fill="var(--color-accent)">
+          <path d="M-9.01 -61.34 A62 62 0 1 0 57.87 22.25 A54 54 0 0 1 -9.01 -61.34Z"></path>
+          <circle cx="52" cy="30" r="6"></circle>
+          <circle cx="34" cy="58" r="4"></circle>
+        </g>
+      </svg>
+    </span>
+
+    <!-- Sun Icon (Day Mode) -->
+    <span class="icon-sun" aria-hidden="true">
+      <svg viewBox="-128 -128 256 256" width="100%" height="100%">
+        <!-- Drop shadow layer -->
+        <g transform="translate(2 2)" fill="#000000" stroke="#000000" fill-opacity="0.3" stroke-opacity="0.3" stroke-width="13" stroke-linecap="round">
+          <circle r="34" stroke="none"></circle>
+          <path d="M54 0L76 0M38.2 38.2L53.7 53.7M0 54L0 76M-38.2 38.2L-53.7 53.7M-54 0L-76 0M-38.2 -38.2L-53.7 -53.7M0 -54L0 -76M38.2 -38.2L53.7 -53.7"></path>
+        </g>
+        <!-- Golden amber sun -->
+        <g fill="#FFAA00" stroke="#FFAA00" stroke-width="13" stroke-linecap="round">
+          <circle r="34" stroke="none"></circle>
+          <path d="M54 0L76 0M38.2 38.2L53.7 53.7M0 54L0 76M-38.2 38.2L-53.7 53.7M-54 0L-76 0M-38.2 -38.2L-53.7 -53.7M0 -54L0 -76M38.2 -38.2L53.7 -53.7"></path>
+        </g>
+      </svg>
+    </span>
+  </span>
+</button>
+
+<style>
+  /* ── Outer Switch Button Frame ────────────────────────── */
+  .glass-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 68px;
+    height: 32px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--radius-pill);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+    transition: transform var(--motion-fast) var(--motion-easing);
+  }
+
+  .glass-switch:hover {
+    transform: scale(1.04);
+  }
+
+  .glass-switch:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  /* ── Pill Track Frame ─────────────────────────────────── */
+  .track-bg {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    /* Glass track gradient from capturemotion spec */
+    background: linear-gradient(
+      179deg,
+      rgba(68, 69, 71, 0.85) 0%,
+      rgba(30, 30, 32, 0.95) 12%,
+      rgba(43, 44, 46, 0.80) 48%,
+      rgba(24, 25, 26, 0.95) 86%,
+      rgba(49, 51, 49, 0.85) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.40),
+      inset 0 0 10px rgba(255, 255, 255, 0.08);
+    transition: background 350ms var(--motion-easing), border-color 350ms var(--motion-easing);
+  }
+
+  :global([data-theme="light"]) .track-bg {
+    background: linear-gradient(
+      179deg,
+      rgba(224, 222, 214, 0.95) 0%,
+      rgba(202, 200, 192, 0.95) 12%,
+      rgba(216, 214, 206, 0.90) 48%,
+      rgba(196, 194, 186, 0.95) 86%,
+      rgba(228, 226, 218, 0.95) 100%
+    );
+    border-color: rgba(12, 14, 18, 0.15);
+    box-shadow:
+      0 3px 10px rgba(0, 0, 0, 0.10),
+      inset 0 0 8px rgba(0, 0, 0, 0.05);
+  }
+
+  /* ── Liquid Expansion Layer ───────────────────────────── */
+  .track-liquid {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: 26px;
+    border-radius: var(--radius-pill);
+    opacity: 0;
+    background: linear-gradient(
+      179deg,
+      rgba(200, 255, 73, 0.45) 0%,
+      rgba(255, 183, 3, 0.25) 50%,
+      rgba(200, 255, 73, 0.10) 100%
+    );
+    transition:
+      width 450ms cubic-bezier(0.34, 1.3, 0.64, 1),
+      opacity 350ms ease-out;
+  }
+
+  .glass-switch[aria-checked="true"] .track-liquid {
+    width: calc(100% - 4px);
+    opacity: 1;
+  }
+
+  /* ── Specular Highlight Lines ─────────────────────────── */
+  .specular-line {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 1px;
+    pointer-events: none;
+    border-radius: 1px;
+  }
+
+  .specular-line-1 {
+    top: 3px;
+    width: 60%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.45) 30%,
+      rgba(255, 255, 255, 0.45) 70%,
+      transparent 100%
+    );
+  }
+
+  .specular-line-2 {
+    top: 5px;
+    width: 78%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.20) 25%,
+      rgba(255, 255, 255, 0.20) 75%,
+      transparent 100%
+    );
+  }
+
+  /* ── Sliding Puck (Knob) ──────────────────────────────── */
+  .puck {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(160deg, #3d3b3b 0%, #262424 45%, #181818 100%);
+    border: 2px solid rgba(12, 14, 18, 0.7);
+    box-shadow:
+      0 3px 8px rgba(0, 0, 0, 0.55),
+      inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    /* Cubic-bezier from WAAPI specification */
+    transition:
+      transform 450ms cubic-bezier(0.34, 1.3, 0.64, 1),
+      background 350ms var(--motion-easing),
+      border-color 350ms var(--motion-easing);
+    z-index: 2;
+  }
+
+  /* Right translation for Day Mode */
+  .glass-switch[aria-checked="true"] .puck {
+    transform: translateX(36px);
+    background: linear-gradient(160deg, #FFFFFF 0%, #F5F4EE 45%, #E4E2D8 100%);
+    border-color: rgba(200, 198, 190, 0.95);
+    box-shadow:
+      0 3px 8px rgba(0, 0, 0, 0.25),
+      inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  }
+
+  /* ── Knurl Grip Texture Overlay ───────────────────────── */
+  .puck-knurl {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.6;
+    transition: opacity 300ms var(--motion-easing);
+  }
+
+  .glass-switch[aria-checked="true"] .puck-knurl {
+    opacity: 0.25;
+  }
+
+  /* ── Moon & Sun Icons ─────────────────────────────────── */
+  .icon-moon,
+  .icon-sun {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    display: grid;
+    place-items: center;
+    transition:
+      opacity 280ms var(--motion-easing),
+      transform 450ms cubic-bezier(0.34, 1.3, 0.64, 1);
+  }
+
+  .icon-moon {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  .icon-sun {
+    opacity: 0;
+    transform: scale(0.6) rotate(-45deg);
+  }
+
+  /* Swapped states */
+  .glass-switch[aria-checked="true"] .icon-moon {
+    opacity: 0;
+    transform: scale(0.6) rotate(45deg);
+  }
+
+  .glass-switch[aria-checked="true"] .icon-sun {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+</style>
+
+<script>
+  function setupThemeToggle() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+
+    function syncState() {
+      if (!btn) return;
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const isLight = current === 'light';
+      btn.setAttribute('aria-checked', isLight ? 'true' : 'false');
+      btn.setAttribute(
+        'aria-label',
+        isLight ? 'Switch to night mode' : 'Switch to day mode'
+      );
+    }
+
+    // Initial sync
+    syncState();
+
+    btn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'light' ? 'dark' : 'light';
+
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      syncState();
+    });
+  }
+
+  // Run on first load
+  setupThemeToggle();
+
+  // Support Astro view transitions or navigation if added later
+  document.addEventListener('astro:after-swap', setupThemeToggle);
+</script>

@@ -1,0 +1,111 @@
+---
+// src/pages/projects/index.astro
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+
+const projects = await getCollection('projects', ({ data }) => !data.draft);
+const sorted = projects.sort((a, b) => {
+  if (a.data.featured && !b.data.featured) return -1;
+  if (!a.data.featured && b.data.featured) return 1;
+  return b.data.pubDate.getTime() - a.data.pubDate.getTime();
+});
+
+const software = sorted.filter(p => !p.data.isResearch);
+const research  = sorted.filter(p => p.data.isResearch);
+---
+
+<BaseLayout
+  title="Projects"
+  description="A portfolio of cybersecurity engineering and research projects by Mainak Sarkar — including SYNQ, SOAR-X and the Kokborok–English NMT book chapter."
+>
+  <SiteHeader />
+
+  <main id="main-content">
+    <div class="container page-header">
+      <SectionHeading
+        eyebrow="Work"
+        heading="Projects"
+        description="Engineering projects, research prototypes and published work. Each entry documents the problem, my contribution, and the current status."
+      />
+    </div>
+
+    {software.length > 0 && (
+      <section class="container project-section" aria-labelledby="software-heading">
+        <h2 class="project-section-title mono" id="software-heading">Engineering</h2>
+        <div class="projects-grid">
+          {software.map(project => (
+            <ProjectCard
+              title={project.data.title}
+              description={project.data.description}
+              status={project.data.status}
+              technologies={project.data.technologies}
+              repositoryURL={project.data.repositoryURL}
+              demoURL={project.data.demoURL}
+              coverImage={project.data.coverImage}
+              slug={project.slug}
+              variant={project.data.featured ? 'featured' : 'standard'}
+              isResearch={project.data.isResearch}
+              doiURL={project.data.doiURL}
+            />
+          ))}
+        </div>
+      </section>
+    )}
+
+    {research.length > 0 && (
+      <section class="container project-section" aria-labelledby="research-heading">
+        <h2 class="project-section-title mono" id="research-heading">Research &amp; Publications</h2>
+        <div class="projects-grid">
+          {research.map(project => (
+            <ProjectCard
+              title={project.data.title}
+              description={project.data.description}
+              status={project.data.status}
+              technologies={project.data.technologies}
+              repositoryURL={project.data.repositoryURL}
+              demoURL={project.data.demoURL}
+              coverImage={project.data.coverImage}
+              slug={project.slug}
+              isResearch={project.data.isResearch}
+              doiURL={project.data.doiURL}
+            />
+          ))}
+        </div>
+      </section>
+    )}
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .page-header {
+    padding-top: var(--space-1000);
+    padding-bottom: var(--space-500);
+  }
+
+  .project-section {
+    margin-bottom: var(--space-800);
+  }
+
+  .project-section-title {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-400);
+    padding-bottom: var(--space-200);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--layout-grid-gap);
+  }
+</style>

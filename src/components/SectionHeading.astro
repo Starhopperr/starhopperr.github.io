@@ -1,0 +1,71 @@
+---
+// SectionHeading.astro
+interface Props {
+  eyebrow?: string;
+  heading: string;
+  description?: string;
+  as?: 'h1' | 'h2' | 'h3';
+  align?: 'left' | 'center';
+  id?: string;
+}
+
+const {
+  eyebrow,
+  heading,
+  description,
+  as: Tag = 'h2',
+  align = 'left',
+  id,
+} = Astro.props;
+---
+
+<div class:list={['section-heading', align === 'center' && 'section-heading--center']}>
+  {eyebrow && (
+    <p class="section-eyebrow mono" aria-hidden="true">{eyebrow}</p>
+  )}
+  <Tag class="section-title" id={id}>{heading}</Tag>
+  {description && (
+    <p class="section-description">{description}</p>
+  )}
+</div>
+
+<style>
+  .section-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-150);
+    margin-bottom: var(--space-600);
+  }
+
+  .section-heading--center {
+    align-items: center;
+    text-align: center;
+  }
+
+  .section-eyebrow {
+    color: var(--color-accent);
+    font-size: var(--font-size-label);
+    font-family: var(--font-mono);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-size: var(--font-size-heading-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-snug);
+    color: var(--color-text-primary);
+    letter-spacing: -0.02em;
+  }
+
+  .section-description {
+    font-size: var(--font-size-body-l);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+    max-width: 56ch;
+  }
+
+  .section-heading--center .section-description {
+    max-width: 52ch;
+  }
+</style>

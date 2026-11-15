@@ -1,0 +1,273 @@
+---
+// ProjectCard.astro
+interface Props {
+  title: string;
+  description: string;
+  status: string;
+  technologies: string[];
+  repositoryURL?: string;
+  demoURL?: string;
+  coverImage?: string;
+  slug: string;
+  variant?: 'standard' | 'featured' | 'compact';
+  isResearch?: boolean;
+  doiURL?: string;
+}
+
+const {
+  title,
+  description,
+  status,
+  technologies,
+  repositoryURL,
+  demoURL,
+  coverImage,
+  slug,
+  variant = 'standard',
+  isResearch = false,
+  doiURL,
+} = Astro.props;
+
+const statusClass: Record<string, string> = {
+  'In Development': 'status--active',
+  'Completed':      'status--done',
+  'Archived':       'status--archived',
+  'Published':      'status--done',
+};
+---
+
+<article class:list={['project-card', variant === 'featured' && 'project-card--featured']}>
+  {coverImage && (
+    <div class="card-image">
+      <img src={coverImage} alt={`${title} screenshot`} loading="lazy" />
+    </div>
+  )}
+
+  <div class="card-body">
+    <div class="card-meta">
+      <span class:list={['status-badge', statusClass[status] ?? 'status--default']}>
+        {status}
+      </span>
+      {isResearch && (
+        <span class="research-badge mono">Research</span>
+      )}
+    </div>
+
+    <h3 class="card-title">
+      <a href={`/projects/${slug}/`}>{title}</a>
+    </h3>
+
+    <p class="card-description">{description}</p>
+
+    <div class="tag-row">
+      {technologies.map(t => (
+        <span class="tech-tag">{t}</span>
+      ))}
+    </div>
+
+    <div class="card-links">
+      <a href={`/projects/${slug}/`} class="card-link card-link--primary">
+        View details →
+      </a>
+      {repositoryURL && (
+        <a
+          href={repositoryURL}
+          class="card-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${title} source code on GitHub`}
+        >
+          GitHub
+        </a>
+      )}
+      {demoURL && (
+        <a
+          href={demoURL}
+          class="card-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${title} live demo`}
+        >
+          Demo
+        </a>
+      )}
+      {doiURL && (
+        <a
+          href={doiURL}
+          class="card-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${title} DOI`}
+        >
+          DOI
+        </a>
+      )}
+    </div>
+  </div>
+</article>
+
+<style>
+  .project-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-large);
+    overflow: hidden;
+    transition:
+      border-color var(--motion-normal) var(--motion-easing),
+      transform var(--motion-normal) var(--motion-easing),
+      box-shadow var(--motion-normal) var(--motion-easing);
+  }
+
+  .project-card:hover {
+    border-color: var(--color-border-strong);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .project-card--featured {
+    border-color: rgba(200, 255, 73, 0.2);
+  }
+
+  .card-image {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+  }
+
+  .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--motion-reveal) var(--motion-easing);
+  }
+
+  .project-card:hover .card-image img {
+    transform: scale(1.03);
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-200);
+    padding: var(--space-400);
+    flex: 1;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-150);
+  }
+
+  .status-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  .status--active {
+    background: rgba(200, 255, 73, 0.12);
+    color: var(--color-accent);
+    border: 1px solid rgba(200, 255, 73, 0.3);
+  }
+
+  .status--done {
+    background: rgba(100, 220, 160, 0.1);
+    color: #64dca0;
+    border: 1px solid rgba(100, 220, 160, 0.25);
+  }
+
+  .status--archived {
+    background: rgba(155, 158, 167, 0.1);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-default);
+  }
+
+  .status--default {
+    background: var(--color-bg-surface-raised);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  .research-badge {
+    font-size: var(--font-size-label);
+    color: var(--color-text-secondary);
+    background: var(--color-bg-surface-raised);
+    border: 1px solid var(--color-border-subtle);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+  }
+
+  .card-title {
+    font-size: var(--font-size-heading-m);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-snug);
+  }
+
+  .card-title a {
+    color: var(--color-text-primary);
+    transition: color var(--motion-fast) var(--motion-easing);
+  }
+
+  .card-title a:hover {
+    color: var(--color-accent);
+  }
+
+  .card-description {
+    font-size: var(--font-size-body);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+    flex: 1;
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-100);
+  }
+
+  .tech-tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  .card-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-200);
+    margin-top: var(--space-100);
+  }
+
+  .card-link {
+    font-size: var(--font-size-body-s);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    transition: color var(--motion-fast) var(--motion-easing);
+  }
+
+  .card-link:hover {
+    color: var(--color-text-primary);
+  }
+
+  .card-link--primary {
+    color: var(--color-accent);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .card-link--primary:hover {
+    color: #d6ff66;
+  }
+</style>

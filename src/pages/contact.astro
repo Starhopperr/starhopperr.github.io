@@ -1,0 +1,153 @@
+---
+// src/pages/contact.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+---
+
+<BaseLayout
+  title="Contact"
+  description="Get in touch with Mainak Sarkar — open to research collaborations, cybersecurity discussions and internship opportunities."
+>
+  <SiteHeader />
+
+  <main id="main-content">
+    <section class="section" aria-labelledby="contact-heading">
+      <div class="container contact-inner">
+        <SectionHeading
+          eyebrow="Get in touch"
+          heading="Contact"
+          description="I'm open to research collaborations, security discussions, mentorship and internship opportunities in cybersecurity."
+          id="contact-heading"
+        />
+
+        <div class="contact-grid">
+          <div class="contact-card">
+            <span class="contact-label mono">Email</span>
+            <a href="mailto:mainak2ms@gmail.com" class="contact-value">
+              mainak2ms@gmail.com
+            </a>
+            <p class="contact-note">Preferred for research enquiries and collaborations.</p>
+          </div>
+
+          <div class="contact-card">
+            <span class="contact-label mono">GitHub</span>
+            <a
+              href="https://github.com/Starhopperr"
+              class="contact-value"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              github.com/Starhopperr
+            </a>
+            <p class="contact-note">Source code, project repositories and contributions.</p>
+          </div>
+
+          <div class="contact-card">
+            <span class="contact-label mono">LinkedIn</span>
+            <a
+              href="https://www.linkedin.com/in/starhoppersenpai/"
+              class="contact-value"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              linkedin.com/in/starhoppersenpai
+            </a>
+            <p class="contact-note">Professional network and career opportunities.</p>
+          </div>
+        </div>
+
+        <div class="contact-note-box">
+          <p class="mono note-label">A note on response time</p>
+          <p>
+            I try to respond to all genuine messages within a few days. For
+            research or technical discussions, include some context about your
+            work so I can respond meaningfully.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .contact-inner {
+    padding-top: var(--space-1000);
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--layout-grid-gap);
+    margin-bottom: var(--space-800);
+  }
+
+  .contact-card {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-large);
+    padding: var(--space-500);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-200);
+    transition: border-color var(--motion-normal) var(--motion-easing);
+  }
+
+  .contact-card:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  .contact-label {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .contact-value {
+    font-size: var(--font-size-body-l);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    word-break: break-all;
+    transition: color var(--motion-fast) var(--motion-easing);
+  }
+
+  .contact-value:hover {
+    color: var(--color-accent);
+  }
+
+  .contact-note {
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .contact-note-box {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-large);
+    padding: var(--space-500);
+    max-width: 540px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-200);
+  }
+
+  .note-label {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .contact-note-box p:last-child {
+    font-size: var(--font-size-body);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+  }
+</style>

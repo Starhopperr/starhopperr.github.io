@@ -1,0 +1,267 @@
+---
+// src/pages/projects/[...slug].astro
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects', ({ data }) => !data.draft);
+  return projects.map(project => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await project.render();
+
+const {
+  title, description, status, technologies,
+  repositoryURL, demoURL, doiURL, coverImage,
+  pubDate, updatedDate, isResearch,
+} = project.data;
+
+const pubFormatted = pubDate.toLocaleDateString('en-GB', {
+  day: 'numeric', month: 'long', year: 'numeric',
+});
+const updFormatted = updatedDate?.toLocaleDateString('en-GB', {
+  day: 'numeric', month: 'long', year: 'numeric',
+});
+
+const statusClass: Record<string, string> = {
+  'In Development': 'status--active',
+  'Completed':      'status--done',
+  'Archived':       'status--archived',
+  'Published':      'status--done',
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  image={coverImage}
+  ogType="article"
+>
+  <SiteHeader />
+
+  <main id="main-content">
+    <article class="container project-page">
+
+      <!-- Back link -->
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <a href="/projects/" class="breadcrumb-link">← All projects</a>
+      </nav>
+
+      <!-- Header -->
+      <header class="project-header">
+        <div class="project-meta">
+          <span class:list={['status-badge', statusClass[status] ?? 'status--default']}>
+            {status}
+          </span>
+          {isResearch && <span class="research-badge mono">Research</span>}
+        </div>
+
+        <h1 class="project-title">{title}</h1>
+        <p class="project-description">{description}</p>
+
+        <div class="project-tech">
+          {technologies.map(t => (
+            <span class="tech-tag">{t}</span>
+          ))}
+        </div>
+
+        <div class="project-links">
+          {repositoryURL && (
+            <a href={repositoryURL} class="btn btn--secondary" target="_blank" rel="noopener noreferrer">
+              View on GitHub
+            </a>
+          )}
+          {demoURL && (
+            <a href={demoURL} class="btn btn--secondary" target="_blank" rel="noopener noreferrer">
+              Live Demo
+            </a>
+          )}
+          {doiURL && (
+            <a href={doiURL} class="btn btn--secondary" target="_blank" rel="noopener noreferrer">
+              View Publication (DOI)
+            </a>
+          )}
+        </div>
+
+        <div class="project-dates">
+          <time datetime={pubDate.toISOString()}>Added {pubFormatted}</time>
+          {updatedDate && <span>· Updated <time datetime={updatedDate.toISOString()}>{updFormatted}</time></span>}
+        </div>
+      </header>
+
+      {coverImage && (
+        <div class="project-cover">
+          <img src={coverImage} alt={`${title} screenshot`} />
+        </div>
+      )}
+
+      <!-- Body -->
+      <div class="prose project-body">
+        <Content />
+      </div>
+
+    </article>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .project-page {
+    padding-top: var(--space-800);
+    padding-bottom: var(--space-1000);
+  }
+
+  .breadcrumb {
+    margin-bottom: var(--space-500);
+  }
+
+  .breadcrumb-link {
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+    transition: color var(--motion-fast) var(--motion-easing);
+  }
+
+  .breadcrumb-link:hover {
+    color: var(--color-text-primary);
+  }
+
+  .project-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-300);
+    max-width: var(--layout-reading-max);
+    margin-bottom: var(--space-600);
+  }
+
+  .project-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-150);
+  }
+
+  .status-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  .status--active {
+    background: rgba(200, 255, 73, 0.12);
+    color: var(--color-accent);
+    border: 1px solid rgba(200, 255, 73, 0.3);
+  }
+
+  .status--done {
+    background: rgba(100, 220, 160, 0.1);
+    color: #64dca0;
+    border: 1px solid rgba(100, 220, 160, 0.25);
+  }
+
+  .status--archived {
+    background: rgba(155, 158, 167, 0.1);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-default);
+  }
+
+  .research-badge {
+    font-size: var(--font-size-label);
+    color: var(--color-text-secondary);
+    background: var(--color-bg-surface-raised);
+    border: 1px solid var(--color-border-subtle);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+  }
+
+  .project-title {
+    font-size: var(--font-size-heading-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-snug);
+    letter-spacing: -0.025em;
+    color: var(--color-text-primary);
+  }
+
+  .project-description {
+    font-size: var(--font-size-body-l);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .project-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-100);
+  }
+
+  .tech-tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  .project-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-200);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-150) var(--space-400);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-semibold);
+    min-height: 44px;
+    transition: background var(--motion-fast) var(--motion-easing),
+                border-color var(--motion-fast) var(--motion-easing);
+  }
+
+  .btn--secondary {
+    border: 1px solid var(--color-border-strong);
+    color: var(--color-text-primary);
+    background: transparent;
+  }
+
+  .btn--secondary:hover {
+    background: var(--color-bg-surface);
+  }
+
+  .project-dates {
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+  }
+
+  .project-cover {
+    border-radius: var(--radius-large);
+    overflow: hidden;
+    margin-bottom: var(--space-800);
+    border: 1px solid var(--color-border-default);
+  }
+
+  .project-cover img {
+    width: 100%;
+    height: auto;
+  }
+
+  .project-body {
+    border-top: 1px solid var(--color-border-subtle);
+    padding-top: var(--space-800);
+  }
+</style>

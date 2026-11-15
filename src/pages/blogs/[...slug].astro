@@ -1,0 +1,181 @@
+---
+// src/pages/blogs/[...slug].astro
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+
+const { title, description, pubDate, updatedDate, category, tags, author, heroImage } = post.data;
+
+const pubFormatted = pubDate.toLocaleDateString('en-GB', {
+  day: 'numeric', month: 'long', year: 'numeric',
+});
+const updFormatted = updatedDate?.toLocaleDateString('en-GB', {
+  day: 'numeric', month: 'long', year: 'numeric',
+});
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  image={heroImage}
+  ogType="article"
+>
+  <SiteHeader />
+
+  <main id="main-content">
+    <article class="container article-page">
+
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <a href="/blogs/" class="breadcrumb-link">← All articles</a>
+      </nav>
+
+      <header class="article-header">
+        <div class="article-meta-top">
+          <span class="article-category mono">{category}</span>
+        </div>
+
+        <h1 class="article-title">{title}</h1>
+        <p class="article-dek">{description}</p>
+
+        <div class="article-byline">
+          <span>By {author}</span>
+          <span class="byline-sep" aria-hidden="true">·</span>
+          <time datetime={pubDate.toISOString()}>{pubFormatted}</time>
+          {updatedDate && (
+            <>
+              <span class="byline-sep" aria-hidden="true">·</span>
+              <span>Updated <time datetime={updatedDate.toISOString()}>{updFormatted}</time></span>
+            </>
+          )}
+        </div>
+
+        <div class="article-tags">
+          {tags.map(t => (
+            <span class="article-tag">{t}</span>
+          ))}
+        </div>
+      </header>
+
+      {heroImage && (
+        <div class="article-hero-image">
+          <img src={heroImage} alt="" aria-hidden="true" />
+        </div>
+      )}
+
+      <div class="prose article-body">
+        <Content />
+      </div>
+
+    </article>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .article-page {
+    padding-top: var(--space-800);
+    padding-bottom: var(--space-1000);
+  }
+
+  .breadcrumb {
+    margin-bottom: var(--space-500);
+  }
+
+  .breadcrumb-link {
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+    transition: color var(--motion-fast) var(--motion-easing);
+  }
+
+  .breadcrumb-link:hover { color: var(--color-text-primary); }
+
+  .article-header {
+    max-width: var(--layout-reading-max);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-300);
+    margin-bottom: var(--space-600);
+  }
+
+  .article-meta-top { display: flex; align-items: center; gap: var(--space-200); }
+
+  .article-category {
+    font-size: var(--font-size-label);
+    font-family: var(--font-mono);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .article-title {
+    font-size: var(--font-size-heading-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-snug);
+    letter-spacing: -0.025em;
+  }
+
+  .article-dek {
+    font-size: var(--font-size-body-l);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .article-byline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-150);
+    font-size: var(--font-size-body-s);
+    color: var(--color-text-secondary);
+  }
+
+  .byline-sep { color: var(--color-border-strong); }
+
+  .article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-100);
+  }
+
+  .article-tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  .article-hero-image {
+    border-radius: var(--radius-large);
+    overflow: hidden;
+    margin-bottom: var(--space-800);
+    border: 1px solid var(--color-border-default);
+  }
+
+  .article-hero-image img {
+    width: 100%;
+    height: auto;
+  }
+
+  .article-body {
+    border-top: 1px solid var(--color-border-subtle);
+    padding-top: var(--space-800);
+  }
+</style>
