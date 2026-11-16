@@ -387,7 +387,7 @@ for (let i = 0; i < cfDays.length; i += 7) {
           </div>
 
           <!-- Problem breakdown badges -->
-          <div class="leetcode-breakdown">
+          <div class="stats-breakdown leetcode-breakdown">
             <div class="breakdown-stat">
               <span class="stat-number lc-solved">{leetcodeStats.totalSolved}</span>
               <span class="stat-label mono">Solved</span>
@@ -475,14 +475,10 @@ for (let i = 0; i < cfDays.length; i += 7) {
           </div>
 
           <!-- Problem & contest breakdown badges -->
-          <div class="codeforces-breakdown">
+          <div class="stats-breakdown codeforces-breakdown">
             <div class="breakdown-stat">
               <span class="stat-number cf-rating" id="cf-rating-val">{codeforcesStats.rating}</span>
               <span class="stat-label mono">Rating</span>
-            </div>
-            <div class="breakdown-stat">
-              <span class="stat-number cf-max-rating">{codeforcesStats.maxRating}</span>
-              <span class="stat-label mono">Max</span>
             </div>
             <div class="breakdown-stat">
               <span class="stat-number cf-rank" id="cf-rank-val">{codeforcesStats.rank}</span>
@@ -494,7 +490,10 @@ for (let i = 0; i < cfDays.length; i += 7) {
             </div>
             <div class="breakdown-stat">
               <span class="stat-number cf-subs">{codeforcesStats.totalSubmissions}</span>
-              <span class="stat-label mono">Submissions</span>
+              <span class="stat-label mono">
+                <span class="hide-mobile">Submissions</span>
+                <span class="show-mobile">Subs</span>
+              </span>
             </div>
           </div>
         </div>
@@ -510,7 +509,7 @@ for (let i = 0; i < cfDays.length; i += 7) {
               aria-controls="cf-heatmap-view"
               data-target="cf-heatmap-view"
             >
-              Activity Heatmap
+              Heatmap
             </button>
             <button
               type="button"
@@ -830,14 +829,27 @@ for (let i = 0; i < cfDays.length; i += 7) {
     background: var(--color-bg-surface);
     border: 1px solid var(--color-border-default);
     border-radius: var(--radius-large);
-    padding: var(--space-500);
+    padding: var(--space-300); /* 24px on mobile */
     display: flex;
     flex-direction: column;
-    gap: var(--space-400);
+    gap: var(--space-300);
     transition:
       border-color var(--motion-normal) var(--motion-easing),
       transform var(--motion-normal) var(--motion-easing),
       box-shadow var(--motion-normal) var(--motion-easing);
+  }
+
+  @media (min-width: 640px) {
+    .profile-card {
+      padding: var(--space-400); /* 32px on tablet */
+      gap: var(--space-400);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .profile-card {
+      padding: var(--space-500); /* 40px on desktop */
+    }
   }
 
   .profile-card:hover {
@@ -846,13 +858,21 @@ for (let i = 0; i < cfDays.length; i += 7) {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   }
 
-  /* Header */
+  /* Header — unified responsive layout */
   .profile-card-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-300);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-200);
+  }
+
+  @media (min-width: 640px) {
+    .profile-card-header {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-300);
+    }
   }
 
   .profile-meta {
@@ -870,6 +890,7 @@ for (let i = 0; i < cfDays.length; i += 7) {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--color-border-subtle);
     color: var(--color-text-primary);
+    flex-shrink: 0;
   }
 
   .leetcode-icon-wrapper {
@@ -902,9 +923,15 @@ for (let i = 0; i < cfDays.length; i += 7) {
     text-decoration: underline;
   }
 
+  /* GitHub Single Stat Pill */
+  .profile-stats-summary {
+    display: flex;
+  }
+
   .stat-pill {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: var(--space-100);
     padding: var(--space-100) var(--space-250);
     border-radius: var(--radius-pill);
@@ -912,6 +939,13 @@ for (let i = 0; i < cfDays.length; i += 7) {
     border: 1px solid rgba(200, 255, 73, 0.2);
     font-size: var(--font-size-body-s);
     color: var(--color-text-secondary);
+    width: 100%;
+  }
+
+  @media (min-width: 640px) {
+    .stat-pill {
+      width: auto;
+    }
   }
 
   .stat-pill strong {
@@ -919,20 +953,30 @@ for (let i = 0; i < cfDays.length; i += 7) {
     font-weight: var(--font-weight-bold);
   }
 
-  /* Breakdown badges */
-  .leetcode-breakdown,
-  .codeforces-breakdown {
-    display: flex;
+  /* Unified 4-Column Breakdown Grid (LeetCode & Codeforces) */
+  .stats-breakdown {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     align-items: center;
-    gap: var(--space-250);
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-medium);
-    padding: var(--space-150) var(--space-300);
+    padding: var(--space-100) var(--space-150);
+    gap: var(--space-100);
+    width: 100%;
+    box-sizing: border-box;
   }
 
-  :global([data-theme="light"]) .leetcode-breakdown,
-  :global([data-theme="light"]) .codeforces-breakdown {
+  @media (min-width: 640px) {
+    .stats-breakdown {
+      width: auto;
+      min-width: 320px;
+      padding: var(--space-150) var(--space-250);
+      gap: var(--space-200);
+    }
+  }
+
+  :global([data-theme="light"]) .stats-breakdown {
     background: rgba(0, 0, 0, 0.03);
   }
 
@@ -940,13 +984,16 @@ for (let i = 0; i < cfDays.length; i += 7) {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    text-align: center;
     gap: 2px;
   }
 
   .stat-number {
     font-family: var(--font-mono);
-    font-size: 1.15rem;
+    font-size: clamp(1rem, 3.5vw, 1.15rem);
     font-weight: var(--font-weight-bold);
+    line-height: 1.1;
   }
 
   .lc-solved { color: var(--color-text-primary); }
@@ -954,15 +1001,26 @@ for (let i = 0; i < cfDays.length; i += 7) {
   .lc-med    { color: #FFA116; }
   .lc-hard   { color: #EF4743; }
 
-  .cf-rating     { color: #3B82F6; }
-  .cf-max-rating { color: var(--color-text-secondary); }
-  .cf-rank       { color: var(--color-accent); font-size: 0.95rem; }
-  .cf-solved     { color: var(--color-text-primary); }
-  .cf-subs       { color: var(--color-text-secondary); }
+  .cf-rating { color: #3B82F6; }
+  .cf-rank   { color: var(--color-accent); font-size: clamp(0.85rem, 3vw, 0.95rem); }
+  .cf-solved { color: var(--color-text-primary); }
+  .cf-subs   { color: var(--color-text-secondary); }
 
   .stat-label {
     font-size: 0.65rem;
     color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .show-mobile { display: inline; }
+  .hide-mobile { display: none; }
+
+  @media (min-width: 480px) {
+    .show-mobile { display: none; }
+    .hide-mobile { display: inline; }
   }
 
   /* ── Codeforces View Switcher Toolbar ───────────────────── */
@@ -970,10 +1028,8 @@ for (let i = 0; i < cfDays.length; i += 7) {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-200);
-    padding-bottom: var(--space-100);
-    border-bottom: 1px solid var(--color-border-subtle);
+    gap: var(--space-150);
+    padding-bottom: var(--space-050);
   }
 
   .cf-view-switch {
@@ -994,11 +1050,17 @@ for (let i = 0; i < cfDays.length; i += 7) {
     background: transparent;
     border: none;
     color: var(--color-text-secondary);
-    font-size: var(--font-size-label);
-    padding: 4px 14px;
+    font-size: 0.75rem;
+    padding: 4px 12px;
     border-radius: var(--radius-pill);
     cursor: pointer;
     font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+    transition:
+      background var(--motion-fast) var(--motion-easing),
+      color var(--motion-fast) var(--motion-easing),
+      box-shadow var(--motion-fast) var(--motion-easing);
+  }
     transition:
       background var(--motion-fast) var(--motion-easing),
       color var(--motion-fast) var(--motion-easing),
@@ -1024,11 +1086,51 @@ for (let i = 0; i < cfDays.length; i += 7) {
   }
 
   /* ── Heatmap Grid (Fixed Contrast for Dark & Light Mode) ── */
-  .heatmap-wrapper {
+  .heatmap-wrapper,
+  .cf-chart-container {
     width: 100%;
     overflow-x: auto;
     padding-bottom: var(--space-100);
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+
+  .heatmap-wrapper::-webkit-scrollbar,
+  .cf-chart-container::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .heatmap-wrapper::-webkit-scrollbar-track,
+  .cf-chart-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-pill);
+  }
+
+  .heatmap-wrapper::-webkit-scrollbar-thumb,
+  .cf-chart-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-pill);
+  }
+
+  .heatmap-wrapper::-webkit-scrollbar-thumb:hover,
+  .cf-chart-container::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+  }
+
+  :global([data-theme="light"]) .heatmap-wrapper,
+  :global([data-theme="light"]) .cf-chart-container {
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+
+  :global([data-theme="light"]) .heatmap-wrapper::-webkit-scrollbar-track,
+  :global([data-theme="light"]) .cf-chart-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  :global([data-theme="light"]) .heatmap-wrapper::-webkit-scrollbar-thumb,
+  :global([data-theme="light"]) .cf-chart-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
   }
 
   .heatmap-grid-scroll {
