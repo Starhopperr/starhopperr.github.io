@@ -51,15 +51,15 @@ const skills = [
             B.Tech CSE · Cybersecurity · Bennett University
           </p>
 
-          <h1 id="hero-heading" class="hero-heading">
-            Mainak<br />
-            <span class="hero-heading-accent">Sarkar</span>
+          <h1 id="hero-heading" class="hero-heading">Mainak<br/>
+          <span class="hero-heading-accent">Sarkar <span class="hero-heading-sub">(AKA Starhopper Senpai)</span></span>
           </h1>
+          
 
           <p class="hero-tagline">
             Cybersecurity researcher. Security engineer. I study threats,
             break cryptographic assumptions and build systems that communicate
-            securely — even against future adversaries.
+            securely even against future post-quantum adversaries.
           </p>
 
           <div class="hero-actions">
@@ -259,11 +259,13 @@ const skills = [
     grid-template-columns: 1fr;
     gap: var(--space-800);
     align-items: center;
+    width: 100%;
   }
 
   @media (min-width: 1024px) {
     .hero-inner {
-      grid-template-columns: 1fr 400px;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+      align-items: center;
     }
   }
 
@@ -271,14 +273,16 @@ const skills = [
     display: flex;
     flex-direction: column;
     gap: var(--space-400);
+    min-width: 0;
   }
 
   .hero-eyebrow {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: var(--space-150);
     color: var(--color-text-secondary);
     font-size: var(--font-size-label);
+    width: fit-content;
   }
 
   .status-dot {
@@ -312,6 +316,14 @@ const skills = [
     color: var(--color-accent);
   }
 
+  .hero-heading-sub {
+  font-size: 0.35em;
+  color: var(--color-accent);
+  display: inline;
+  white-space: nowrap;
+  vertical-align: middle; 
+  }
+
   .hero-tagline {
     font-size: var(--font-size-body-l);
     color: var(--color-text-secondary);
@@ -323,6 +335,7 @@ const skills = [
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-200);
+    width: fit-content;
   }
 
   /* ── Portrait ───────────────────────────────────────────────── */
@@ -332,14 +345,16 @@ const skills = [
     justify-content: center;
     align-items: center;
     width: 100%;
-    max-width: 380px;
     margin-inline: auto;
   }
 
   @media (min-width: 1024px) {
     .hero-portrait {
       margin-inline: 0;
+      justify-content: flex-end;
       justify-self: end;
+      width: 100%;
+      max-width: none;
     }
   }
 
@@ -361,13 +376,14 @@ const skills = [
   .portrait-frame {
     position: relative;
     z-index: 2;
-    width: min(340px, 80vw);
+    width: clamp(240px, 55vw, 320px);
     aspect-ratio: 1 / 1;
     border-radius: 50%;
     overflow: hidden;
     display: flex;
     align-items: flex-end;
     justify-content: center;
+    margin-inline: auto;
     border: 2px solid var(--color-accent);
     box-shadow:
       0 0 24px rgba(200, 255, 73, 0.22),
@@ -376,6 +392,14 @@ const skills = [
     transition:
       transform var(--motion-normal) var(--motion-easing),
       box-shadow var(--motion-normal) var(--motion-easing);
+  }
+
+  @media (min-width: 1024px) {
+    .portrait-frame {
+      width: clamp(280px, 26vw, 420px);
+      margin-inline: 0;
+      margin-left: auto;
+    }
   }
 
   :global([data-theme="light"]) .portrait-frame {

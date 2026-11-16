@@ -522,11 +522,6 @@ for (let i = 0; i < cfDays.length; i += 7) {
               Rating Graph
             </button>
           </div>
-
-          <span class="cf-sync-badge mono" id="cf-sync-badge">
-            <span class="sync-dot" aria-hidden="true"></span>
-            <span id="cf-sync-text">Live Sync</span>
-          </span>
         </div>
 
         <!-- ── VIEW 1: Submissions Heatmap (Active by default) ──── -->
@@ -770,17 +765,11 @@ for (let i = 0; i < cfDays.length; i += 7) {
 
     // 2. Live Sync
     async function syncCodeforcesLive() {
-      const syncText = document.getElementById('cf-sync-text');
-      const syncDot = document.querySelector('.sync-dot');
       const ratingVal = document.getElementById('cf-rating-val');
       const rankVal = document.getElementById('cf-rank-val');
 
       try {
-        const [uRes, rRes] = await Promise.all([
-          fetch('https://codeforces.com/api/user.info?handles=SukumarRoy'),
-          fetch('https://codeforces.com/api/user.rating?handle=SukumarRoy')
-        ]);
-
+        const uRes = await fetch('https://codeforces.com/api/user.info?handles=SukumarRoy');
         if (uRes.ok) {
           const uData = await uRes.json();
           if (uData.status === 'OK' && uData.result?.[0]) {
@@ -791,16 +780,8 @@ for (let i = 0; i < cfDays.length; i += 7) {
             }
           }
         }
-
-        if (rRes.ok) {
-          const rData = await rRes.json();
-          if (rData.status === 'OK' && Array.isArray(rData.result)) {
-            if (syncText) syncText.textContent = 'Live (Synced)';
-            if (syncDot) syncDot.classList.add('synced');
-          }
-        }
       } catch (e) {
-        if (syncText) syncText.textContent = 'Live Cache';
+        // silent fallback
       }
     }
 
@@ -987,13 +968,19 @@ for (let i = 0; i < cfDays.length; i += 7) {
     justify-content: center;
     text-align: center;
     gap: 2px;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .stat-number {
     font-family: var(--font-mono);
-    font-size: clamp(1rem, 3.5vw, 1.15rem);
+    font-size: clamp(0.95rem, 3.2vw, 1.15rem);
     font-weight: var(--font-weight-bold);
     line-height: 1.1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100%;
   }
 
   .lc-solved { color: var(--color-text-primary); }
@@ -1002,17 +989,27 @@ for (let i = 0; i < cfDays.length; i += 7) {
   .lc-hard   { color: #EF4743; }
 
   .cf-rating { color: #3B82F6; }
-  .cf-rank   { color: var(--color-accent); font-size: clamp(0.85rem, 3vw, 0.95rem); }
+  .cf-rank   {
+    color: var(--color-accent);
+    font-size: clamp(0.78rem, 2.4vw, 0.95rem);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100%;
+  }
   .cf-solved { color: var(--color-text-primary); }
   .cf-subs   { color: var(--color-text-secondary); }
 
   .stat-label {
-    font-size: 0.65rem;
+    font-size: clamp(0.58rem, 1.8vw, 0.68rem);
     color: var(--color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     line-height: 1;
     white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100%;
   }
 
   .show-mobile { display: inline; }
@@ -1027,9 +1024,10 @@ for (let i = 0; i < cfDays.length; i += 7) {
   .cf-view-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: var(--space-150);
     padding-bottom: var(--space-050);
+    width: 100%;
   }
 
   .cf-view-switch {
@@ -1040,6 +1038,7 @@ for (let i = 0; i < cfDays.length; i += 7) {
     border-radius: var(--radius-pill);
     padding: 3px;
     gap: 3px;
+    width: fit-content;
   }
 
   :global([data-theme="light"]) .cf-view-switch {
@@ -1322,32 +1321,6 @@ for (let i = 0; i < cfDays.length; i += 7) {
     gap: var(--space-200);
   }
 
-  .cf-sync-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
-  }
-
-  .sync-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #3B82F6;
-    box-shadow: 0 0 6px #3B82F6;
-    animation: pulseSync 2s infinite ease-in-out;
-  }
-
-  .sync-dot.synced {
-    background: var(--color-accent);
-    box-shadow: 0 0 6px var(--color-accent);
-  }
-
-  @keyframes pulseSync {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.8); }
-  }
 
   .cf-filter-badge {
     display: inline-flex;
